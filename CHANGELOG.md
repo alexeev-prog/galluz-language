@@ -1,3 +1,9 @@
+commit 01c540c099b87c09841ac35d29be077f10b10eb3
+Author: Alexeev Bronislav <alexeev.dev@mail.ru>
+Date:   Mon Dec 1 17:02:57 2025 +0700
+
+    fix shell.nix, cmake files and create basic cli app
+
 commit f3b1d125b55ba359b96c5c43fb999c5d6323fada
 Author: Alexeev Bronislav <alexeev.dev@mail.ru>
 Date:   Mon Dec 1 16:59:09 2025 +0700

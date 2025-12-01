@@ -5,7 +5,10 @@
 #define START_INDENT_SYMBOL "├─"
 #define INDENT_SYMBOL "──"
 
-enum { INDENT_LENGTH = 6 };
+enum
+{
+    INDENT_LENGTH = 6
+};
 
 #define RED_COLOR "\033[1;31m"
 #define GREEN_COLOR "\033[1;32m"
