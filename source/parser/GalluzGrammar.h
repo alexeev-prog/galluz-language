@@ -464,7 +464,7 @@ std::array<LexRule, Tokenizer::LEX_RULES_COUNT> Tokenizer::lexRules_ = {{
   {std::regex(R"(^\s+)"), &_lexRule8},
   {std::regex(R"(^\d+)"), &_lexRule9},
   {std::regex(R"(^"[^\"]*")"), &_lexRule10},
-  {std::regex(R"(^[\w\-+*=!<>/]+)"), &_lexRule11}
+  {std::regex(R"(^[\w\-+*=!<>/:]+)"), &_lexRule11}
 }};
 std::map<TokenizerState, std::vector<size_t>> Tokenizer::lexRulesByStartConditions_ =  {{TokenizerState::INITIAL, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}}};
     // clang-format on

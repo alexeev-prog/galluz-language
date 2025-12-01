@@ -1,4 +1,4 @@
-(var X 10)
+(var (X !int) 10)
 (fprint "X before: %d\n" X)
-(set X 20)
+(set (X !int) 20)
 (fprint "X after: %d\n" X)

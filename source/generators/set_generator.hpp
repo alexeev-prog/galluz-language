@@ -33,17 +33,46 @@ namespace galluz::generators {
             const auto& name_exp = ast_node.list[1];
             const auto& value_exp = ast_node.list[2];
 
-            if (name_exp.type != ExpType::SYMBOL) {
-                throw std::runtime_error("Variable name must be a symbol");
-            }
+            std::string var_name;
 
-            std::string var_name = name_exp.string;
+            if (name_exp.type == ExpType::SYMBOL) {
+                var_name = name_exp.string;
+            } else if (name_exp.type == ExpType::LIST && name_exp.list.size() == 2) {
+                if (name_exp.list[0].type != ExpType::SYMBOL) {
+                    throw std::runtime_error("Variable name must be a symbol");
+                }
+                var_name = name_exp.list[0].string;
+            } else {
+                throw std::runtime_error("Invalid variable name in set operation");
+            }
 
             llvm::Value* new_value = m_GENERATOR_MANAGER->generate_code(value_exp, context);
             llvm::Type* value_type = new_value->getType();
 
             auto* var_info = context.find_variable(var_name);
             if (var_info) {
+                if (var_info->type_info && var_info->type_info->llvm_type != value_type) {
+                    if (var_info->type_info->kind == core::TypeKind::INT && value_type->isIntegerTy()) {
+                        new_value =
+                            context.m_BUILDER.CreateIntCast(new_value, var_info->type_info->llvm_type, true);
+                    } else if (var_info->type_info->kind == core::TypeKind::DOUBLE
+                               && value_type->isFloatingPointTy())
+                    {
+                        new_value = context.m_BUILDER.CreateFPCast(new_value, var_info->type_info->llvm_type);
+                    } else if (var_info->type_info->kind == core::TypeKind::DOUBLE
+                               && value_type->isIntegerTy())
+                    {
+                        new_value = context.m_BUILDER.CreateSIToFP(new_value, var_info->type_info->llvm_type);
+                    } else if (var_info->type_info->kind == core::TypeKind::INT
+                               && value_type->isFloatingPointTy())
+                    {
+                        new_value = context.m_BUILDER.CreateFPToSI(new_value, var_info->type_info->llvm_type);
+                    } else {
+                        throw std::runtime_error("Type mismatch in set operation for variable: " + var_name);
+                    }
+                    value_type = new_value->getType();
+                }
+
                 if (var_info->is_global) {
                     auto* global_var = context.m_MODULE.getNamedGlobal(var_name);
                     if (global_var->getValueType() != value_type) {

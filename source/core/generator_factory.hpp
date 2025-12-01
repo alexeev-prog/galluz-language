@@ -3,6 +3,8 @@
 #include "../generators/arithmetic_generator.hpp"
 #include "../generators/comparison_generator.hpp"
 #include "../generators/fractional_generator.hpp"
+#include "../generators/function_call_generator.hpp"
+#include "../generators/function_generator.hpp"
 #include "../generators/list_generator.hpp"
 #include "../generators/number_generator.hpp"
 #include "../generators/print_generator.hpp"
@@ -29,6 +31,8 @@ namespace galluz::core {
             manager.register_generator(std::make_unique<generators::ComparisonGenerator>(&manager));
             manager.register_generator(std::make_unique<generators::PrintGenerator>(&manager));
             manager.register_generator(std::make_unique<generators::ListGenerator>(&manager));
+            manager.register_generator(std::make_unique<generators::FunctionGenerator>(&manager));
+            manager.register_generator(std::make_unique<generators::FunctionCallGenerator>(&manager));
         }
     };
 

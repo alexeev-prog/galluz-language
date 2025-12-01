@@ -1,8 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <sstream>
-#include <vector>
 
 #include "../core/generator_manager.hpp"
 #include "../core/preprocessor.hpp"
@@ -21,34 +19,12 @@ namespace galluz::generators {
                 return existing_func;
             }
 
-            auto* byte_ptr_ty = context.m_BUILDER.getInt8Ty()->getPointerTo();
+            auto* byte_ptr_ty = llvm::PointerType::get(context.m_CTX, 0);
             return llvm::Function::Create(
                 llvm::FunctionType::get(context.m_BUILDER.getInt32Ty(), byte_ptr_ty, true),
                 llvm::Function::ExternalLinkage,
                 "printf",
                 &context.m_MODULE);
-        }
-
-        auto convert_arg_for_printf(llvm::Value* arg, core::CompilationContext& context) -> llvm::Value* {
-            auto* type = arg->getType();
-
-            if (type->isIntegerTy(64)) {
-                return context.m_BUILDER.CreateSExtOrTrunc(arg, context.m_BUILDER.getInt32Ty());
-            }
-
-            if (type->isIntegerTy(32)) {
-                return arg;
-            }
-
-            if (type->isFloatTy()) {
-                return context.m_BUILDER.CreateFPExt(arg, context.m_BUILDER.getDoubleTy());
-            }
-
-            if (type->isDoubleTy()) {
-                return arg;
-            }
-
-            return arg;
         }
 
       public:
@@ -83,17 +59,12 @@ namespace galluz::generators {
             }
 
             std::string format_str = m_PREPROCESSOR->postprocess_string(format_exp.string);
-            std::vector<llvm::Value*> args;
-
-            for (size_t i = 2; i < ast_node.list.size(); ++i) {
-                args.push_back(m_GENERATOR_MANAGER->generate_code(ast_node.list[i], context));
-            }
-
             std::vector<llvm::Value*> printf_args;
             printf_args.push_back(context.m_BUILDER.CreateGlobalStringPtr(format_str));
 
-            for (auto* arg : args) {
-                printf_args.push_back(convert_arg_for_printf(arg, context));
+            for (size_t i = 2; i < ast_node.list.size(); ++i) {
+                llvm::Value* arg = m_GENERATOR_MANAGER->generate_code(ast_node.list[i], context);
+                printf_args.push_back(arg);
             }
 
             return context.m_BUILDER.CreateCall(printf_func, printf_args);

@@ -16,11 +16,11 @@ namespace galluz::generators {
             const std::string& symbol = ast_node.string;
 
             if (symbol == "true") {
-                return context.m_BUILDER.getInt64(1);
+                return context.m_BUILDER.getInt1(true);
             }
 
             if (symbol == "false") {
-                return context.m_BUILDER.getInt64(0);
+                return context.m_BUILDER.getInt1(false);
             }
 
             auto* var_info = context.find_variable(symbol);
@@ -38,6 +38,11 @@ namespace galluz::generators {
                         return var_info->value;
                     }
                 }
+            }
+
+            auto* func_info = context.find_function(symbol);
+            if (func_info) {
+                return func_info->function;
             }
 
             auto* global_var = context.m_MODULE.getNamedGlobal(symbol);

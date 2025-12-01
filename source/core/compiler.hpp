@@ -21,6 +21,7 @@ namespace galluz {
         core::GeneratorManager m_GENERATOR_MANAGER;
         std::unique_ptr<core::CompilationContext> m_COMPILATION_CONTEXT;
         core::Preprocessor m_PREPROCESSOR;
+        std::unique_ptr<core::TypeSystem> m_TYPE_SYSTEM;
 
       public:
         Compiler()
@@ -50,8 +51,18 @@ namespace galluz {
             m_MODULE = std::make_unique<llvm::Module>("GalluzLangCompilationUnit", *m_CTX);
             m_BUILDER = std::make_unique<llvm::IRBuilder<>>(*m_CTX);
 
-            m_COMPILATION_CONTEXT =
-                std::make_unique<core::CompilationContext>(*m_CTX, *m_MODULE, *m_BUILDER, nullptr);
+            m_TYPE_SYSTEM = std::make_unique<core::TypeSystem>(*m_CTX);
+
+            m_TYPE_SYSTEM->register_type("int", core::TypeKind::INT, m_BUILDER->getInt64Ty());
+            m_TYPE_SYSTEM->register_type("double", core::TypeKind::DOUBLE, m_BUILDER->getDoubleTy());
+            m_TYPE_SYSTEM->register_type(
+                "str", core::TypeKind::STRING, m_BUILDER->getInt8Ty()->getPointerTo());
+            m_TYPE_SYSTEM->register_type("bool", core::TypeKind::BOOL, m_BUILDER->getInt1Ty());
+            m_TYPE_SYSTEM->register_type("void", core::TypeKind::VOID, m_BUILDER->getVoidTy());
+            m_TYPE_SYSTEM->register_type("auto", core::TypeKind::UNKNOWN, nullptr);
+
+            m_COMPILATION_CONTEXT = std::make_unique<core::CompilationContext>(
+                *m_CTX, *m_MODULE, *m_BUILDER, nullptr, m_TYPE_SYSTEM.get());
         }
 
         void setup_external_functions() {

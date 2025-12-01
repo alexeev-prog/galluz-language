@@ -1,3 +1,9 @@
+commit 450bb91acdad32cdb89bbecd39133464a05193e2
+Author: Alexeev Bronislav <alexeev.dev@mail.ru>
+Date:   Mon Dec 1 23:32:34 2025 +0700
+
+    fix bugs, add set, scope, arithmetic, comparison, improve compiler
+
 commit 3d4abf488dcde68d37e853061b72a66fdfd3df87
 Author: Alexeev Bronislav <alexeev.dev@mail.ru>
 Date:   Mon Dec 1 22:51:53 2025 +0700

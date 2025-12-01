@@ -1,1 +1,10 @@
-(fprint "Program Version: %f\n\n" (var VERSION 1.12))
+(var (age !int) 25)
+(var (price !double) 99.99)
+(var (name !str) "Alice")
+(var (active !bool) true)
+
+(fprint "Name: %s, Age: %d\n" name age)
+(fprint "Price: %f, Active: %d\n" price active)
+
+(var (VERSION !double) 1.12)
+(fprint "Program Version: %f\n\n" VERSION)

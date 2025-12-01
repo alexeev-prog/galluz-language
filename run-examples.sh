@@ -7,7 +7,7 @@ if [ ! -x "./build/bin/galluzlang" ]; then
 fi
 
 # Find all .galluz files in examples directory
-find examples -type f -name "*.galluz" | while read -r file; do
+find examples -type f -name "*.glz" | while read -r file; do
     echo "Processing file: $file"
 
     # Compilation
