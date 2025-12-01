@@ -1,0 +1,4 @@
+(var X 10)
+(fprint "X before: %d\n" X)
+(set X 20)
+(fprint "X after: %d\n" X)

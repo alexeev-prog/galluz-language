@@ -1,7 +1,7 @@
 /**
- * Galluz lang grammar
+ * Morning.lang grammar
  *
- * syntax-cli -g source/parser/GalluzGrammar.bnf -m LALR1 -o source/parser/GalluzGrammar.h
+ * syntax-cli -g source/parser/MorningLangGrammar.bnf -m LALR1 -o source/parser/MorningLangGrammar.h
  *
  */
 

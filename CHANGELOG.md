@@ -1,3 +1,9 @@
+commit 3d4abf488dcde68d37e853061b72a66fdfd3df87
+Author: Alexeev Bronislav <alexeev.dev@mail.ru>
+Date:   Mon Dec 1 22:51:53 2025 +0700
+
+    split galluz llvm into generators, improve code style
+
 commit b8c2885b26acba8e304fb570fff5aca5c4f84e6c
 Author: Alexeev Bronislav <alexeev.dev@mail.ru>
 Date:   Mon Dec 1 22:17:13 2025 +0700

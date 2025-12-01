@@ -1,0 +1,12 @@
+(var A 10)
+(var B 20)
+(fprint "A > B: %d\n" (> A B))
+(fprint "A < B: %d\n" (< A B))
+(fprint "A == 10: %d\n" (== A 10))
+(fprint "A != B: %d\n" (!= A B))
+
+(var X 5.5)
+(var Y 2.2)
+(fprint "X > Y: %d\n" (> X Y))
+(fprint "X < Y: %d\n" (< X Y))
+(fprint "X == 5.5: %d\n" (== X 5.5))

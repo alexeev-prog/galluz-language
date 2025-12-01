@@ -1,0 +1,6 @@
+(global ALPHA 42)
+(scope
+    (var BETA "Hello")
+    (fprint "BETA: %s\n" BETA)
+)
+(fprint "ALPHA: %d\n" ALPHA)

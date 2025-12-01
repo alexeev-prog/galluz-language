@@ -16,7 +16,7 @@ namespace galluz::generators {
             return llvm::ConstantFP::get(context.m_BUILDER.getDoubleTy(), ast_node.fractional);
         }
 
-        auto get_priority() const -> int override { return 100; }
+        auto get_priority() const -> int override { return 1000; }
     };
 
 }    // namespace galluz::generators

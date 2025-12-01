@@ -14,7 +14,7 @@ namespace galluz::generators {
             return context.m_BUILDER.getInt64(ast_node.number);
         }
 
-        auto get_priority() const -> int override { return 100; }
+        auto get_priority() const -> int override { return 1000; }
     };
 
 }    // namespace galluz::generators

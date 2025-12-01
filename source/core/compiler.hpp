@@ -7,6 +7,7 @@
 
 #include "generator_factory.hpp"
 #include "generator_manager.hpp"
+#include "preprocessor.hpp"
 #include "types.hpp"
 
 namespace galluz {
@@ -19,6 +20,7 @@ namespace galluz {
         std::unique_ptr<syntax::GalluzGrammar> m_PARSER;
         core::GeneratorManager m_GENERATOR_MANAGER;
         std::unique_ptr<core::CompilationContext> m_COMPILATION_CONTEXT;
+        core::Preprocessor m_PREPROCESSOR;
 
       public:
         Compiler()
@@ -29,7 +31,9 @@ namespace galluz {
         }
 
         auto execute(const std::string& program, const std::string& output_base) -> int {
-            auto ast = m_PARSER->parse(program);
+            std::string processed_program = m_PREPROCESSOR.preprocess(program);
+
+            auto ast = m_PARSER->parse(processed_program);
 
             generate_ir(ast);
 

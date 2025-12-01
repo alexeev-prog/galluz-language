@@ -6,6 +6,7 @@
 namespace galluz::generators {
 
     class ListGenerator : public core::ICodeGenerator {
+      private:
         core::GeneratorManager* m_GENERATOR_MANAGER;
 
       public:
@@ -19,15 +20,16 @@ namespace galluz::generators {
                 return context.m_BUILDER.getInt64(0);
             }
 
-            const auto& first = ast_node.list[0];
-            if (first.type == ExpType::SYMBOL) {
-                return context.m_BUILDER.getInt64(0);
+            llvm::Value* last_result = context.m_BUILDER.getInt64(0);
+
+            for (const auto& item : ast_node.list) {
+                last_result = m_GENERATOR_MANAGER->generate_code(item, context);
             }
 
-            return context.m_BUILDER.getInt64(0);
+            return last_result;
         }
 
-        auto get_priority() const -> int override { return 10; }
+        auto get_priority() const -> int override { return 100; }
     };
 
 }    // namespace galluz::generators
