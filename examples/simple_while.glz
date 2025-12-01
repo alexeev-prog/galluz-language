@@ -1,0 +1,8 @@
+(var (counter !int) 0)
+
+(while (< counter 5)
+    (scope
+        (fprint "Counter: %d\n" counter)
+        (set counter (+ counter 1))
+    )
+)

@@ -11,17 +11,17 @@
 
 %%
 
-\/\/.*                          %empty
-\/\*[\s\S]*?\*\/                %empty
+\/\/.*                            %empty
+\/\*[\s\S]*?\*\/                  %empty
 
-\d+\.\d*([eE][-+]?\d+)?         FRACTIONAL
-\.\d+([eE][-+]?\d+)?            FRACTIONAL
-\d+[eE][-+]?\d+                 FRACTIONAL
+\s+                               %empty
 
-\s+                             %empty
-\d+                             NUMBER
-\"[^\"]*\"                      STRING
-[\w\-+*=!<>/:]+                  SYMBOL
+[-+]?\d+\.\d*([eE][-+]?\d+)?      FRACTIONAL
+[-+]?\.\d+([eE][-+]?\d+)?         FRACTIONAL
+[-+]?\d+[eE][-+]?\d+              FRACTIONAL
+[-+]?\d+                          NUMBER
+\"[^\"]*\"                        STRING
+[\w\-+*=!<>/:%]+                  SYMBOL
 
 /lex
 

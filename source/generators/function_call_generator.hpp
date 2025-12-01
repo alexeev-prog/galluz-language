@@ -28,8 +28,14 @@ namespace galluz::generators {
 
             std::string name = first.string;
             if (name == "defn" || name == "var" || name == "global" || name == "set" || name == "scope"
-                || name == "fprint" || name == "+" || name == "-" || name == "*" || name == "/" || name == "%"
-                || name == ">" || name == "<" || name == ">=" || name == "<=" || name == "==" || name == "!=")
+                || name == "do" || name == "fprint" || name == "if" || name == "while" || name == "break"
+                || name == "continue")
+            {
+                return false;
+            }
+
+            if (name == "+" || name == "-" || name == "*" || name == "/" || name == "%" || name == ">"
+                || name == "<" || name == ">=" || name == "<=" || name == "==" || name == "!=")
             {
                 return false;
             }

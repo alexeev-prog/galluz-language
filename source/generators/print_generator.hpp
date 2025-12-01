@@ -67,7 +67,9 @@ namespace galluz::generators {
                 printf_args.push_back(arg);
             }
 
-            return context.m_BUILDER.CreateCall(printf_func, printf_args);
+            llvm::Value* call_result = context.m_BUILDER.CreateCall(printf_func, printf_args);
+
+            return context.m_BUILDER.CreateIntCast(call_result, context.m_BUILDER.getInt64Ty(), true);
         }
 
         auto get_priority() const -> int override { return 300; }

@@ -1,3 +1,9 @@
+commit 50288d5ba2f22fecd43f7bd404c5a2dd2cb6c74f
+Author: Alexeev Bronislav <alexeev.dev@mail.ru>
+Date:   Tue Dec 2 01:22:12 2025 +0700
+
+    create strong type system, create functions
+
 commit 450bb91acdad32cdb89bbecd39133464a05193e2
 Author: Alexeev Bronislav <alexeev.dev@mail.ru>
 Date:   Mon Dec 1 23:32:34 2025 +0700

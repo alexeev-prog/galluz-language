@@ -100,6 +100,9 @@ namespace galluz::generators {
                 func_type, llvm::Function::ExternalLinkage, func_name, &context.m_MODULE);
 
             auto* old_insert_block = context.m_BUILDER.GetInsertBlock();
+            auto* old_func = context.m_CURRENT_FUNCTION;
+
+            context.m_CURRENT_FUNCTION = func;
 
             llvm::BasicBlock* entry_block = llvm::BasicBlock::Create(context.m_CTX, "entry", func);
             context.m_BUILDER.SetInsertPoint(entry_block);
@@ -129,35 +132,43 @@ namespace galluz::generators {
             llvm::Value* result = m_GENERATOR_MANAGER->generate_code(body, context);
 
             if (return_type->kind == core::TypeKind::VOID) {
-                context.m_BUILDER.CreateRetVoid();
-            } else if (result) {
-                if (result->getType() != return_type->llvm_type) {
-                    if (return_type->kind == core::TypeKind::INT && result->getType()->isIntegerTy()) {
-                        result = context.m_BUILDER.CreateIntCast(result, return_type->llvm_type, true);
-                    } else if (return_type->kind == core::TypeKind::DOUBLE
-                               && result->getType()->isFloatingPointTy())
-                    {
-                        result = context.m_BUILDER.CreateFPCast(result, return_type->llvm_type);
-                    } else if (return_type->kind == core::TypeKind::DOUBLE
-                               && result->getType()->isIntegerTy())
-                    {
-                        result = context.m_BUILDER.CreateSIToFP(result, return_type->llvm_type);
-                    } else if (return_type->kind == core::TypeKind::INT
-                               && result->getType()->isFloatingPointTy())
-                    {
-                        result = context.m_BUILDER.CreateFPToSI(result, return_type->llvm_type);
-                    } else if (return_type->kind == core::TypeKind::BOOL && result->getType()->isIntegerTy())
-                    {
-                        result =
-                            context.m_BUILDER.CreateIntCast(result, context.m_BUILDER.getInt1Ty(), false);
-                    }
+                if (!context.m_BUILDER.GetInsertBlock()->getTerminator()) {
+                    context.m_BUILDER.CreateRetVoid();
                 }
-                context.m_BUILDER.CreateRet(result);
+            } else if (result) {
+                if (!context.m_BUILDER.GetInsertBlock()->getTerminator()) {
+                    if (result->getType() != return_type->llvm_type) {
+                        if (return_type->kind == core::TypeKind::INT && result->getType()->isIntegerTy()) {
+                            result = context.m_BUILDER.CreateIntCast(result, return_type->llvm_type, true);
+                        } else if (return_type->kind == core::TypeKind::DOUBLE
+                                   && result->getType()->isFloatingPointTy())
+                        {
+                            result = context.m_BUILDER.CreateFPCast(result, return_type->llvm_type);
+                        } else if (return_type->kind == core::TypeKind::DOUBLE
+                                   && result->getType()->isIntegerTy())
+                        {
+                            result = context.m_BUILDER.CreateSIToFP(result, return_type->llvm_type);
+                        } else if (return_type->kind == core::TypeKind::INT
+                                   && result->getType()->isFloatingPointTy())
+                        {
+                            result = context.m_BUILDER.CreateFPToSI(result, return_type->llvm_type);
+                        } else if (return_type->kind == core::TypeKind::BOOL
+                                   && result->getType()->isIntegerTy())
+                        {
+                            result =
+                                context.m_BUILDER.CreateIntCast(result, context.m_BUILDER.getInt1Ty(), false);
+                        }
+                    }
+                    context.m_BUILDER.CreateRet(result);
+                }
             } else {
-                context.m_BUILDER.CreateRet(llvm::Constant::getNullValue(return_type->llvm_type));
+                if (!context.m_BUILDER.GetInsertBlock()->getTerminator()) {
+                    context.m_BUILDER.CreateRet(llvm::Constant::getNullValue(return_type->llvm_type));
+                }
             }
 
             context.pop_scope();
+            context.m_CURRENT_FUNCTION = old_func;
 
             if (old_insert_block) {
                 context.m_BUILDER.SetInsertPoint(old_insert_block);
@@ -196,11 +207,7 @@ namespace galluz::generators {
             auto [func_name, return_type] = parse_typed_name(name_exp, context);
             auto params = parse_params(params_exp, context);
 
-            auto* old_func = context.m_CURRENT_FUNCTION;
-
             llvm::Function* func = create_function_ir(func_name, params, return_type, body_exp, context);
-
-            context.m_CURRENT_FUNCTION = old_func;
 
             std::vector<core::VariableInfo> param_infos;
             for (const auto& param : params) {

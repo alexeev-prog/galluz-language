@@ -420,7 +420,7 @@ return TokenType::__EMPTY;
 }
 
 inline TokenType _lexRule5(const Tokenizer& tokenizer, const std::string& yytext) {
-return TokenType::FRACTIONAL;
+return TokenType::__EMPTY;
 }
 
 inline TokenType _lexRule6(const Tokenizer& tokenizer, const std::string& yytext) {
@@ -432,7 +432,7 @@ return TokenType::FRACTIONAL;
 }
 
 inline TokenType _lexRule8(const Tokenizer& tokenizer, const std::string& yytext) {
-return TokenType::__EMPTY;
+return TokenType::FRACTIONAL;
 }
 
 inline TokenType _lexRule9(const Tokenizer& tokenizer, const std::string& yytext) {
@@ -458,13 +458,13 @@ std::array<LexRule, Tokenizer::LEX_RULES_COUNT> Tokenizer::lexRules_ = {{
   {std::regex(R"(^\))"), &_lexRule2},
   {std::regex(R"(^\/\/.*)"), &_lexRule3},
   {std::regex(R"(^\/\*[\s\S]*?\*\/)"), &_lexRule4},
-  {std::regex(R"(^\d+\.\d*([eE][-+]?\d+)?)"), &_lexRule5},
-  {std::regex(R"(^\.\d+([eE][-+]?\d+)?)"), &_lexRule6},
-  {std::regex(R"(^\d+[eE][-+]?\d+)"), &_lexRule7},
-  {std::regex(R"(^\s+)"), &_lexRule8},
-  {std::regex(R"(^\d+)"), &_lexRule9},
+  {std::regex(R"(^\s+)"), &_lexRule5},
+  {std::regex(R"(^[-+]?\d+\.\d*([eE][-+]?\d+)?)"), &_lexRule6},
+  {std::regex(R"(^[-+]?\.\d+([eE][-+]?\d+)?)"), &_lexRule7},
+  {std::regex(R"(^[-+]?\d+[eE][-+]?\d+)"), &_lexRule8},
+  {std::regex(R"(^[-+]?\d+)"), &_lexRule9},
   {std::regex(R"(^"[^\"]*")"), &_lexRule10},
-  {std::regex(R"(^[\w\-+*=!<>/:]+)"), &_lexRule11}
+  {std::regex(R"(^[\w\-+*=!<>/:%]+)"), &_lexRule11}
 }};
 std::map<TokenizerState, std::vector<size_t>> Tokenizer::lexRulesByStartConditions_ =  {{TokenizerState::INITIAL, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}}};
     // clang-format on

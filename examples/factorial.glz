@@ -1,0 +1,33 @@
+(defn (iter_factorial !int) ((n !int))
+    (if (< n 0)
+        (do
+            (fprint "Error: Negative number\n")
+            -1)
+        (do
+            (var (result !int) 1)
+            (var (i !int) 1)
+            (while (<= i n)
+                (do
+                    (set result (* result i))
+                    (set i (+ i 1))))
+            result)))
+
+(defn (factorial !int) ((x !int))
+    (if (< x 0)
+        -1
+        (if (== x 0)
+            1
+            (* x (factorial (- x 1)))
+        )
+    )
+)
+
+(fprint "iter_factorial(5) = %d\n" (factorial 5))
+(fprint "iter_factorial(-3) = %d\n" (factorial -3))
+(fprint "iter_factorial(0) = %d\n" (factorial 0))
+(fprint "iter_factorial(1) = %d\n" (factorial 1))
+
+(fprint "factorial(5) = %d\n" (factorial 5))
+(fprint "factorial(-3) = %d\n" (factorial -3))
+(fprint "factorial(0) = %d\n" (factorial 0))
+(fprint "factorial(1) = %d\n" (factorial 1))

@@ -1,0 +1,5 @@
+(var (age !int) 18)
+
+(if (>= age 18)
+    (fprint "Adult\n")
+    (fprint "Minor\n"))

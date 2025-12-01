@@ -31,6 +31,13 @@ namespace galluz::core {
         bool is_reference = false;
     };
 
+    struct LoopContext {
+        llvm::BasicBlock* condition_block;
+        llvm::BasicBlock* body_block;
+        llvm::BasicBlock* continue_block;
+        llvm::BasicBlock* exit_block;
+    };
+
     class TypeSystem {
       private:
         std::unordered_map<std::string, TypeInfo> type_registry;
@@ -126,6 +133,7 @@ namespace galluz::core {
         TypeSystem* type_system;
         std::unordered_map<std::string, llvm::GlobalVariable*> globals;
         std::stack<std::unique_ptr<Scope>> scopes;
+        std::stack<LoopContext> loop_stack;
         Scope* current_scope;
 
         CompilationContext(llvm::LLVMContext& ctx,
@@ -158,8 +166,13 @@ namespace galluz::core {
         auto get_current_scope() -> Scope* { return current_scope; }
 
         auto find_variable(const std::string& name) -> VariableInfo* {
-            if (current_scope) {
-                return current_scope->find_variable(name);
+            Scope* scope = current_scope;
+            while (scope) {
+                auto it = scope->variables.find(name);
+                if (it != scope->variables.end()) {
+                    return &it->second;
+                }
+                scope = scope->parent;
             }
             return nullptr;
         }
@@ -203,6 +216,21 @@ namespace galluz::core {
                 return true;
             }
             return false;
+        }
+
+        auto push_loop(const LoopContext& loop) -> void { loop_stack.push(loop); }
+
+        auto pop_loop() -> void {
+            if (!loop_stack.empty()) {
+                loop_stack.pop();
+            }
+        }
+
+        auto get_current_loop() -> LoopContext* {
+            if (loop_stack.empty()) {
+                return nullptr;
+            }
+            return &loop_stack.top();
         }
     };
 

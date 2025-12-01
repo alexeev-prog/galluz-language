@@ -1,12 +1,24 @@
 (var (a !int) 10)
 (var (b !int) 3)
-(var (c !double) 7.5)
 
 (fprint "a + b = %d\n" (+ a b))
 (fprint "a - b = %d\n" (- a b))
 (fprint "a * b = %d\n" (* a b))
 (fprint "a / b = %d\n" (/ a b))
+(fprint "a %% b = %d\n" (% a b))
 
+(var (c !double) 7.5)
 (fprint "c + 2.5 = %f\n" (+ c 2.5))
 (fprint "c * 2.0 = %f\n" (* c 2.0))
-(fprint "5.0 / 2.0 = %f\n" (/ 5.0 2.0))
+
+(defn (add !int) ((x !int) (y !int))
+    (+ x y))
+
+(defn (multiply !int) ((a !double) (b !double))
+    (* a b))
+
+(var (result1 !int) (add 5 10))
+(var (result2 !double) (multiply 3.5 2.0))
+
+(fprint "add(5, 10) = %d\n" result1)
+(fprint "multiply(3.5, 2.0) = %f\n" result2)
