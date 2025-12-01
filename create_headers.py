@@ -1,0 +1,21 @@
+import os
+from pathlib import Path
+
+
+def create_hpp_for_cpp_file(cpp_path):
+    hpp_path = cpp_path.with_suffix('.hpp')
+    if not hpp_path.exists():
+        hpp_path.touch()
+
+
+def process_directory(source_dir):
+    for root, _, files in os.walk(source_dir):
+        for file in files:
+            if file.endswith(('.cpp', '.cxx')):
+                cpp_path = Path(root) / file
+                create_hpp_for_cpp_file(cpp_path)
+
+
+if __name__ == '__main__':
+    source_directory = 'source'
+    process_directory(source_directory)
