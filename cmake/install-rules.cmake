@@ -1,6 +1,6 @@
 install(
-    TARGETS morninglang_exe
-    RUNTIME COMPONENT morninglang_Runtime
+    TARGETS galluzlang_exe
+    RUNTIME COMPONENT galluzlang_Runtime
 )
 
 if(PROJECT_IS_TOP_LEVEL)

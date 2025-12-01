@@ -33,11 +33,8 @@ llvm_map_components_to_libnames(llvm_libs support core irreader TargetParser Tar
 add_library(
     galluzlang_lib OBJECT
     source/tracelogger.cpp
-    source/galluzllvm.cpp
     source/logger.cpp
-    source/compiler.cpp
     source/input_parser.cpp
-    source/codegen/arithmetic.cpp
 )
 target_link_libraries(galluzlang_lib ${llvm_libs} lldELF)
 target_link_libraries(galluzlang_lib

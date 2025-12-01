@@ -1,22 +1,22 @@
 { pkgs ? import <nixpkgs> {} }:
 let
-  # Оверлей для LLVM 14
-  llvm14Overlay = self: super: {
-    llvmPackages_14 = super.llvmPackages_14;
-  };
-  
-  # Применяем overlay
-  pkgsWithLLVM14 = import <nixpkgs> {
-    overlays = [ llvm14Overlay ];
-  };
-  
   libs = with pkgs; [
     boost
     cmake
+    clang
+    clang-tools
+    clang-tidy-sarif
+    clang-analyzer
+    libclang
+    llvm
     libffi
     stb
     entt
     ncurses
+    lld
+    gcc
+    lld
+    bolt
     pkg-config
     gdb
     catch2
@@ -25,24 +25,13 @@ let
     boehmgc
     valgrind
     libxml2
-    gcc
   ];
-  
-  llvm14Libs = with pkgsWithLLVM14.llvmPackages_14; [
-    clang
-    clang-tools
-    libclang
-    llvm
-    lld
-    lldb
-  ];
-  
-  allLibs = libs ++ llvm14Libs;
-  
+  lib = libs;
 in
 pkgs.mkShell {
   nativeBuildInputs = with pkgs; [
     cppcheck
+    clang-tools
     codespell
     conan
     doxygen
@@ -50,20 +39,22 @@ pkgs.mkShell {
     lcov
     vcpkg
     vcpkg-tool
-  ] ++ (with pkgsWithLLVM14.llvmPackages_14; [
-    clang-tools
-  ]);
-  
-  buildInputs = allLibs;
-  
+  ];
+  buildInputs = libs;
+  # XDG_DATA_DIRS = builtins.getEnv "XDG_DATA_DIRS";
+  # XDG_RUNTIME_DIRS = "/run/user/1001/";
   shellHook = ''
-    echo "morning.lang Dev Shell with LLVM 14"
-    
-    export CC=${pkgsWithLLVM14.llvmPackages_14.clang}/bin/clang
-    export CXX=${pkgsWithLLVM14.llvmPackages_14.clang}/bin/clang++
-    
+    echo "morning.lang Dev Shell"
+    # Ensure proper environment setup for GCC and glibc
+    # Correct the CXXFLAGS by removing `.dev` from the GCC path
     export CXXFLAGS="-I${pkgs.gcc}/include/c++/${pkgs.gcc.version} -I${pkgs.glibc}/include"
-    
-    echo "LLVM version: $(${pkgsWithLLVM14.llvmPackages_14.llvm}/bin/llvm-config --version)"
+
+    export CC=clang
+    export CXX=clang++
+    # Uncomment if you want install syntax-cli
+	# npm config set prefix ./npm-packages/
+	# npm install -g syntax-cli
+    # export PATH="./npm-packages/bin:$PATH"
+    # export NODE_PATH="./npm-packages/lib/node_modules"
   '';
 }
