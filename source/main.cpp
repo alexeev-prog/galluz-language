@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "core/glzllvm.hpp"
+#include "core/compiler.hpp"
 #include "input_parser.hpp"
 #include "logger.hpp"
 
@@ -153,25 +153,11 @@ namespace {
     }
 }    // namespace
 
-// auto main(int argc, char const* argv[]) -> int {
-//     const std::string PROGRAM = R"(
-//         (fprint "Program Version: %f\n\n" (var VERSION 1.12))
-//     )";
-
-//     GalluzLLVM glzvm;
-
-//     glzvm.execute(PROGRAM);
-
-//     return 0;
-// }
-
-/**
- * @brief Entry point
- */
 auto main(int argc, char** argv) -> int {
     const std::string VERSION = "0.8.0";
 
-    GalluzLLVM morning_vm;
+    // Создаем компилятор вместо GalluzLLVM
+    galluz::Compiler compiler;
     std::string program;
     std::string output_base = "out";
     bool compile_raw_object_file = false;
@@ -267,7 +253,7 @@ auto main(int argc, char** argv) -> int {
     // Execute compilation pipeline
     try {
         LOG_INFO("Executing program...");
-        morning_vm.execute(program, output_base);
+        compiler.execute(program, output_base);
         std::cout << "\n";
 
         const std::string LL_FILE = output_base + ".ll";
