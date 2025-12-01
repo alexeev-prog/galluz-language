@@ -1,3 +1,9 @@
+commit 22d709592160dd0cdafd5caecc67a7502704a811
+Author: Alexeev Bronislav <alexeev.dev@mail.ru>
+Date:   Mon Dec 1 22:15:24 2025 +0700
+
+    create var, fprint instruction, boolean, number, fractional and string
+
 commit 01c540c099b87c09841ac35d29be077f10b10eb3
 Author: Alexeev Bronislav <alexeev.dev@mail.ru>
 Date:   Mon Dec 1 17:02:57 2025 +0700

@@ -41,7 +41,7 @@ auto replace_regex_in_string(const std::string& str) -> std::string {
 
 /**
  * @class GalluzLLVM
- * @brief Converts MorningLang code to LLVM IR (Intermediate Representation)
+ * @brief Converts GalluzLang code to LLVM IR (Intermediate Representation)
  *
  * Think of this as a translator that takes your code and converts it
  * into LLVM's assembly-like format, which can then be compiled to
@@ -58,7 +58,7 @@ class GalluzLLVM {
      * 3. A pen (IRBuilder) to write instructions
      */
     GalluzLLVM()
-        : m_PARSER(std::make_unique<syntax::MorningLangGrammar>()) {
+        : m_PARSER(std::make_unique<syntax::GalluzGrammar>()) {
         initialize_module();
         setup_extern_functions();
     }
@@ -120,7 +120,7 @@ class GalluzLLVM {
      */
     std::unique_ptr<llvm::IRBuilder<>> m_IR_BUILDER;
 
-    std::unique_ptr<syntax::MorningLangGrammar> m_PARSER;
+    std::unique_ptr<syntax::GalluzGrammar> m_PARSER;
 
     /**
      * @brief Builds the LLVM IR structure
@@ -207,15 +207,6 @@ class GalluzLLVM {
                         auto* init = generate_expression(exp.list[2]);
 
                         return create_global_variable(var_name, static_cast<llvm::Constant*>(init))
-                            ->getInitializer();
-                    }
-
-                    if (oper == "mutvar") {
-                        auto var_name = exp.list[1].string;
-                        auto* init = generate_expression(exp.list[2]);
-
-                        return create_global_variable(
-                                   var_name, static_cast<llvm::Constant*>(init), /*is_mutable=*/true)
                             ->getInitializer();
                     }
 
@@ -344,7 +335,7 @@ class GalluzLLVM {
      */
     void initialize_module() {
         m_CONTEXT = std::make_unique<llvm::LLVMContext>();
-        m_MODULE = std::make_unique<llvm::Module>("MorningLangCompilationUnit",    // Module name
+        m_MODULE = std::make_unique<llvm::Module>("GalluzLangCompilationUnit",    // Module name
                                                   *m_CONTEXT    // Context reference
         );
         m_IR_BUILDER = std::make_unique<llvm::IRBuilder<>>(*m_CONTEXT);

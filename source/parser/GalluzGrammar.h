@@ -503,10 +503,10 @@ std::map<TokenizerState, std::vector<size_t>> Tokenizer::lexRulesByStartConditio
     };
 
     // clang-format off
-class MorningLangGrammar;
+class GalluzGrammar;
     // clang-format on
 
-    using yyparse = MorningLangGrammar;
+    using yyparse = GalluzGrammar;
 
     typedef void (*ProductionHandler)(yyparse&);
 
@@ -530,7 +530,7 @@ class MorningLangGrammar;
      * Parser class.
      */
     // clang-format off
-class MorningLangGrammar {
+class GalluzGrammar {
         // clang-format on
       public:
         /**
