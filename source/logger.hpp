@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -20,7 +21,6 @@ class Logger {
         CRITICAL
     };
 
-    // Шаблонные методы остаются в заголовке
     template<typename... Args>
     static void log(Level level, const char* format, Args... args) {
         std::string formatted = format_message(format, args...);
@@ -29,6 +29,7 @@ class Logger {
         if (level == Level::CRITICAL) {
             print_traceback();
             std::exit(EXIT_FAILURE);
+            // throw std::runtime_error(formatted);
         }
     }
 
@@ -40,7 +41,6 @@ class Logger {
     static const constexpr size_t TRACEBACK_LIMIT = 15;
     static thread_local std::vector<std::pair<std::string, std::string>> expression_stack_;
 
-    // Приватный шаблонный метод
     template<typename... Args>
     static auto format_message(const char* format, Args... args) -> std::string {
         int size = std::snprintf(nullptr, 0, format, args...);

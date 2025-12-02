@@ -24,7 +24,8 @@ void Logger::print_traceback() {
 
     for (size_t i = start; i < expression_stack_.size(); ++i) {
         const auto& [ctx, expr] = expression_stack_[i];
-        std::fprintf(stderr, "    %s%-8s%s %s\n", CYAN_COLOR, ctx.c_str(), RESET_STYLE, expr.c_str());
+
+        std::fprintf(stderr, "%-5d|    %s%-8s%s %s\n", i, CYAN_COLOR, ctx.c_str(), RESET_STYLE, expr.c_str());
     }
 }
 

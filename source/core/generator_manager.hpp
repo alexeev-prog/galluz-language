@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "../parser/utils.hpp"
 #include "types.hpp"
 
 namespace galluz::core {
@@ -35,6 +36,8 @@ namespace galluz::core {
         }
 
         auto find_generator(const Exp& ast_node) -> ICodeGenerator* {
+            add_expression_to_traceback_stack(ast_node);
+
             for (const auto& generator : m_GENERATORS) {
                 if (generator->can_handle(ast_node)) {
                     return generator.get();

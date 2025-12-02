@@ -4,6 +4,7 @@
 
 #include "../core/generator_manager.hpp"
 #include "../core/types.hpp"
+#include "../logger.hpp"
 
 namespace galluz::generators {
 
@@ -29,7 +30,7 @@ namespace galluz::generators {
 
         auto generate(const Exp& ast_node, core::CompilationContext& context) -> llvm::Value* override {
             if (ast_node.list.size() < 3) {
-                throw std::runtime_error("Invalid variable declaration");
+                LOG_CRITICAL("Invalid variable delcaration");
             }
 
             const auto& first = ast_node.list[0];
@@ -42,27 +43,27 @@ namespace galluz::generators {
 
             if (name_exp.type == ExpType::LIST) {
                 if (name_exp.list.size() != 2) {
-                    throw std::runtime_error("Invalid type annotation");
+                    LOG_CRITICAL("Invalid type annotation");
                 }
                 if (name_exp.list[0].type != ExpType::SYMBOL) {
-                    throw std::runtime_error("Variable name must be a symbol");
+                    LOG_CRITICAL("Variable must be a SYMBOL");
                 }
                 if (name_exp.list[1].type != ExpType::SYMBOL || name_exp.list[1].string.empty()
                     || name_exp.list[1].string[0] != '!')
                 {
-                    throw std::runtime_error("Type annotation must start with !");
+                    LOG_CRITICAL("Type annotation must start with !");
                 }
 
                 var_name = name_exp.list[0].string;
                 std::string type_str = name_exp.list[1].string.substr(1);
                 type_info = context.type_system->get_type(type_str);
                 if (!type_info) {
-                    throw std::runtime_error("Unknown type: " + type_str);
+                    LOG_CRITICAL("Unknown type: %s", type_str.c_str());
                 }
             } else if (name_exp.type == ExpType::SYMBOL) {
                 var_name = name_exp.string;
             } else {
-                throw std::runtime_error("Variable name must be a symbol or typed specification");
+                LOG_CRITICAL("Variable name must be a symbol or typed specification");
             }
 
             llvm::Value* init_value = m_GENERATOR_MANAGER->generate_code(value_exp, context);
@@ -84,7 +85,7 @@ namespace galluz::generators {
                     {
                         init_value = context.m_BUILDER.CreateFPToSI(init_value, type_info->llvm_type);
                     } else {
-                        throw std::runtime_error("Type mismatch for variable " + var_name);
+                        LOG_CRITICAL("Type mismatch for variable %s", var_name.c_str());
                     }
                 }
             }
@@ -94,7 +95,7 @@ namespace galluz::generators {
             if (is_global) {
                 llvm::Constant* const_init = llvm::dyn_cast<llvm::Constant>(init_value);
                 if (!const_init) {
-                    throw std::runtime_error("Global variable initializer must be constant");
+                    LOG_CRITICAL("Global variable initializer must be constant");
                 }
 
                 context.m_MODULE.getOrInsertGlobal(var_name, value_type);
