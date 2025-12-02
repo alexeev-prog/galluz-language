@@ -27,7 +27,7 @@ namespace galluz::generators {
 
         auto generate(const Exp& ast_node, core::CompilationContext& context) -> llvm::Value* override {
             if (ast_node.list.size() < 2) {
-                return context.m_BUILDER.getInt64(0);
+                return context.m_BUILDER.getInt32(0);
             }
 
             context.push_scope();
@@ -43,7 +43,7 @@ namespace galluz::generators {
                 return last_result;
             }
 
-            return context.m_BUILDER.getInt64(0);
+            return context.m_BUILDER.getInt32(0);
         }
 
         auto get_priority() const -> int override { return 100; }

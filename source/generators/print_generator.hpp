@@ -49,13 +49,13 @@ namespace galluz::generators {
             auto* printf_func = ensure_printf_function(context);
 
             if (ast_node.list.size() < 2) {
-                throw std::runtime_error("fprint requires at least a format string");
+                LOG_CRITICAL("fprint requires at least a format string");
             }
 
             const auto& format_exp = ast_node.list[1];
 
             if (format_exp.type != ExpType::STRING) {
-                throw std::runtime_error("First argument to fprint must be a format string");
+                LOG_CRITICAL("First argument to fprint must be a format string");
             }
 
             std::string format_str = m_PREPROCESSOR->postprocess_string(format_exp.string);
@@ -64,12 +64,17 @@ namespace galluz::generators {
 
             for (size_t i = 2; i < ast_node.list.size(); ++i) {
                 llvm::Value* arg = m_GENERATOR_MANAGER->generate_code(ast_node.list[i], context);
+
+                if (arg->getType()->isIntegerTy(1)) {
+                    arg = context.m_BUILDER.CreateZExt(arg, context.m_BUILDER.getInt32Ty());
+                }
+
                 printf_args.push_back(arg);
             }
 
             llvm::Value* call_result = context.m_BUILDER.CreateCall(printf_func, printf_args);
 
-            return context.m_BUILDER.CreateIntCast(call_result, context.m_BUILDER.getInt64Ty(), true);
+            return context.m_BUILDER.CreateIntCast(call_result, context.m_BUILDER.getInt32Ty(), true);
         }
 
         auto get_priority() const -> int override { return 300; }

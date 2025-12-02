@@ -29,8 +29,12 @@ class Logger {
         if (level == Level::CRITICAL) {
             print_traceback();
             std::exit(EXIT_FAILURE);
-            // throw std::runtime_error(formatted);
         }
+    }
+
+    template<typename... Args>
+    static void log(Level level, const std::string& format, Args... args) {
+        log(level, format.c_str(), args...);
     }
 
     static void push_expression(const std::string& context, const std::string& expr);
@@ -41,8 +45,20 @@ class Logger {
     static const constexpr size_t TRACEBACK_LIMIT = 15;
     static thread_local std::vector<std::pair<std::string, std::string>> expression_stack_;
 
+    template<typename T>
+    static auto format_arg(T arg) -> T {
+        return arg;
+    }
+
+    static const char* format_arg(const std::string& arg) { return arg.c_str(); }
+
     template<typename... Args>
     static auto format_message(const char* format, Args... args) -> std::string {
+        return format_message_impl(format, format_arg(args)...);
+    }
+
+    template<typename... Args>
+    static auto format_message_impl(const char* format, Args... args) -> std::string {
         int size = std::snprintf(nullptr, 0, format, args...);
         if (size < 0) {
             return "";

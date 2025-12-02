@@ -43,7 +43,7 @@ namespace galluz::generators {
 
         auto generate(const Exp& ast_node, core::CompilationContext& context) -> llvm::Value* override {
             if (ast_node.list.size() != 3) {
-                throw std::runtime_error("Comparison operation requires exactly two operands");
+                LOG_CRITICAL("Comparison operation requires exactly two operands");
             }
 
             const auto& op = ast_node.list[0].string;
@@ -90,10 +90,10 @@ namespace galluz::generators {
             }
 
             if (!comparison_result) {
-                throw std::runtime_error("Unknown comparison operator: " + op);
+                LOG_CRITICAL("Unknown comparison operator: %s", op);
             }
 
-            return context.m_BUILDER.CreateZExt(comparison_result, context.m_BUILDER.getInt64Ty());
+            return context.m_BUILDER.CreateZExt(comparison_result, context.m_BUILDER.getInt32Ty());
         }
 
         auto get_priority() const -> int override { return 400; }

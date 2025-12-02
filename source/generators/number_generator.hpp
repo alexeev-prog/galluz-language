@@ -11,7 +11,7 @@ namespace galluz::generators {
         }
 
         auto generate(const Exp& ast_node, core::CompilationContext& context) -> llvm::Value* override {
-            return llvm::ConstantInt::get(context.m_BUILDER.getInt64Ty(), ast_node.number);
+            return llvm::ConstantInt::get(context.m_BUILDER.getInt32Ty(), ast_node.number);
         }
 
         auto get_priority() const -> int override { return 1000; }

@@ -49,7 +49,7 @@ namespace galluz::generators {
       private:
         auto generate_if(const Exp& ast_node, core::CompilationContext& context) -> llvm::Value* {
             if (ast_node.list.size() < 3) {
-                throw std::runtime_error("if statement requires condition and then-branch");
+                LOG_CRITICAL("if statement requires condition and then-branch");
             }
 
             llvm::Function* current_func = context.m_CURRENT_FUNCTION;
@@ -120,12 +120,12 @@ namespace galluz::generators {
                 return phi;
             }
 
-            return context.m_BUILDER.getInt64(0);
+            return context.m_BUILDER.getInt32(0);
         }
 
         auto generate_while(const Exp& ast_node, core::CompilationContext& context) -> llvm::Value* {
             if (ast_node.list.size() != 3) {
-                throw std::runtime_error("while statement requires condition and body");
+                LOG_CRITICAL("while statement requires condition and body");
             }
 
             llvm::Function* current_func = context.m_CURRENT_FUNCTION;
@@ -165,29 +165,29 @@ namespace galluz::generators {
 
             context.m_BUILDER.SetInsertPoint(exit_block);
 
-            return context.m_BUILDER.getInt64(0);
+            return context.m_BUILDER.getInt32(0);
         }
 
         auto generate_break(core::CompilationContext& context) -> llvm::Value* {
             auto* loop = context.get_current_loop();
             if (!loop) {
-                throw std::runtime_error("break statement outside loop");
+                LOG_CRITICAL("break statement outside loop");
             }
 
             context.m_BUILDER.CreateBr(loop->exit_block);
 
-            return context.m_BUILDER.getInt64(0);
+            return context.m_BUILDER.getInt32(0);
         }
 
         auto generate_continue(core::CompilationContext& context) -> llvm::Value* {
             auto* loop = context.get_current_loop();
             if (!loop) {
-                throw std::runtime_error("continue statement outside loop");
+                LOG_CRITICAL("continue statement outside loop");
             }
 
             context.m_BUILDER.CreateBr(loop->continue_block);
 
-            return context.m_BUILDER.getInt64(0);
+            return context.m_BUILDER.getInt32(0);
         }
 
         auto get_priority() const -> int override { return 150; }

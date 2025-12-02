@@ -1,3 +1,9 @@
+commit a46486ff9179ce7fb07b4a982179c85adeee5a32
+Author: Alexeev Bronislav <alexeev.dev@mail.ru>
+Date:   Tue Dec 2 14:34:06 2025 +0700
+
+    update log system, add parser utils
+
 commit 24424cfa20d1759aa980b5b14e1f355092e46524
 Author: Alexeev Bronislav <alexeev.dev@mail.ru>
 Date:   Tue Dec 2 02:17:08 2025 +0700

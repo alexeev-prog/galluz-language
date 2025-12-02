@@ -1,0 +1,18 @@
+(struct User ((name !str) (age !int)))
+
+(defn (is_adult_user !void) ((user !User))
+    (if (>= (getprop user age) 18)
+        (fprint "Adult\n")
+        (fprint "Minor\n")
+    )
+)
+
+(defn (set_age !void) ((user !User) (new_age !int))
+    (setprop user age new_age)
+)
+
+(var (user !User) (new User (name "John") (age 18)))
+(is_adult_user user)
+(set_age user 17)
+(is_adult_user user)
+(fprint "%d\n" (hasprop user age))

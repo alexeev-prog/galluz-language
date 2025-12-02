@@ -53,7 +53,7 @@ namespace galluz {
 
             m_TYPE_SYSTEM = std::make_unique<core::TypeSystem>(*m_CTX);
 
-            m_TYPE_SYSTEM->register_type("int", core::TypeKind::INT, m_BUILDER->getInt64Ty());
+            m_TYPE_SYSTEM->register_type("int", core::TypeKind::INT, m_BUILDER->getInt32Ty());
             m_TYPE_SYSTEM->register_type("double", core::TypeKind::DOUBLE, m_BUILDER->getDoubleTy());
             m_TYPE_SYSTEM->register_type(
                 "str", core::TypeKind::STRING, m_BUILDER->getInt8Ty()->getPointerTo());
@@ -68,20 +68,20 @@ namespace galluz {
         void setup_external_functions() {
             auto* byte_ptr_ty = m_BUILDER->getInt8Ty()->getPointerTo();
             m_MODULE->getOrInsertFunction(
-                "printf", llvm::FunctionType::get(m_BUILDER->getInt64Ty(), byte_ptr_ty, true));
+                "printf", llvm::FunctionType::get(m_BUILDER->getInt32Ty(), byte_ptr_ty, true));
         }
 
         void generate_ir(const Exp& ast) {
-            auto* main_type = llvm::FunctionType::get(m_BUILDER->getInt64Ty(), {}, false);
+            auto* main_type = llvm::FunctionType::get(m_BUILDER->getInt32Ty(), {}, false);
 
             auto* main_func = create_function("main", main_type);
             m_COMPILATION_CONTEXT->m_CURRENT_FUNCTION = main_func;
 
-            create_global_variable("_GALLUZ_LLVM_VERSION", m_BUILDER->getInt64(19), false);
+            create_global_variable("_GALLUZ_LLVM_VERSION", m_BUILDER->getInt32(19), false);
 
             llvm::Value* result = m_GENERATOR_MANAGER.generate_code(ast, *m_COMPILATION_CONTEXT);
 
-            m_BUILDER->CreateRet(m_BUILDER->getInt64(0));
+            m_BUILDER->CreateRet(m_BUILDER->getInt32(0));
         }
 
         auto create_function(const std::string& name, llvm::FunctionType* type) -> llvm::Function* {

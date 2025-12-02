@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <stack>
 #include <string>
 #include <unordered_map>
@@ -14,14 +15,30 @@
 
 namespace galluz::core {
 
-    enum class TypeKind
+    enum class TypeKind : uint8_t
     {
         INT,
         DOUBLE,
         STRING,
         BOOL,
         VOID,
+        STRUCT,
         UNKNOWN
+    };
+
+    struct TypeInfo;
+
+    struct StructField {
+        std::string name;
+        TypeInfo* type;
+        size_t index;
+    };
+
+    struct StructInfo {
+        std::string name;
+        llvm::StructType* llvm_type;
+        std::vector<StructField> fields;
+        std::unordered_map<std::string, size_t> field_indices;
     };
 
     struct TypeInfo {
@@ -29,6 +46,7 @@ namespace galluz::core {
         llvm::Type* llvm_type;
         std::string name;
         bool is_reference = false;
+        StructInfo* struct_info = nullptr;
     };
 
     struct LoopContext {
@@ -41,6 +59,7 @@ namespace galluz::core {
     class TypeSystem {
       private:
         std::unordered_map<std::string, TypeInfo> type_registry;
+        std::unordered_map<std::string, StructInfo> struct_registry;
         llvm::LLVMContext& context;
 
       public:
@@ -48,7 +67,87 @@ namespace galluz::core {
             : context(ctx) {}
 
         auto register_type(const std::string& name, TypeKind kind, llvm::Type* type) -> void {
-            type_registry[name] = {kind, type, name, false};
+            type_registry[name] = {kind, type, name, false, nullptr};
+        }
+
+        auto register_struct_type(const std::string& name, llvm::StructType* struct_type) -> void {
+            StructInfo struct_info;
+            struct_info.name = name;
+            struct_info.llvm_type = struct_type;
+            struct_registry[name] = struct_info;
+
+            TypeInfo type_info;
+            type_info.kind = TypeKind::STRUCT;
+            type_info.llvm_type = struct_type;
+            type_info.name = name;
+            type_info.struct_info = &struct_registry[name];
+            type_registry[name] = type_info;
+        }
+
+        auto define_struct(const std::string& name,
+                           const std::vector<std::pair<std::string, TypeInfo*>>& fields) -> StructInfo* {
+            auto it = struct_registry.find(name);
+            if (it != struct_registry.end()) {
+                return &it->second;
+            }
+
+            std::vector<llvm::Type*> field_types;
+            std::vector<StructField> struct_fields;
+
+            for (size_t i = 0; i < fields.size(); ++i) {
+                const auto& [field_name, field_type] = fields[i];
+                field_types.push_back(field_type->llvm_type);
+
+                StructField field;
+                field.name = field_name;
+                field.type = field_type;
+                field.index = i;
+                struct_fields.push_back(field);
+            }
+
+            llvm::StructType* struct_type = llvm::StructType::create(context, field_types, name);
+
+            StructInfo struct_info;
+            struct_info.name = name;
+            struct_info.llvm_type = struct_type;
+            struct_info.fields = struct_fields;
+
+            for (size_t i = 0; i < struct_fields.size(); ++i) {
+                struct_info.field_indices[struct_fields[i].name] = i;
+            }
+
+            struct_registry[name] = struct_info;
+
+            TypeInfo type_info;
+            type_info.kind = TypeKind::STRUCT;
+            type_info.llvm_type = struct_type;
+            type_info.name = name;
+            type_info.struct_info = &struct_registry[name];
+            type_registry[name] = type_info;
+
+            return &struct_registry[name];
+        }
+
+        auto get_struct_info(const std::string& name) -> StructInfo* {
+            auto it = struct_registry.find(name);
+            if (it != struct_registry.end()) {
+                return &it->second;
+            }
+            return nullptr;
+        }
+
+        auto get_struct_field_index(const std::string& struct_name, const std::string& field_name)
+            -> std::optional<size_t> {
+            auto* struct_info = get_struct_info(struct_name);
+            if (!struct_info) {
+                return std::nullopt;
+            }
+
+            auto it = struct_info->field_indices.find(field_name);
+            if (it != struct_info->field_indices.end()) {
+                return it->second;
+            }
+            return std::nullopt;
         }
 
         auto get_type(const std::string& name) -> TypeInfo* {
@@ -113,6 +212,18 @@ namespace galluz::core {
             return nullptr;
         }
 
+        auto find_variable_from_value(llvm::Value* value) -> VariableInfo* {
+            for (auto& [name, var_info] : variables) {
+                if (var_info.value == value) {
+                    return &var_info;
+                }
+            }
+            if (parent) {
+                return parent->find_variable_from_value(value);
+            }
+            return nullptr;
+        }
+
         auto find_function(const std::string& name) -> FunctionInfo* {
             auto it = functions.find(name);
             if (it != functions.end()) {
@@ -171,6 +282,18 @@ namespace galluz::core {
                 auto it = scope->variables.find(name);
                 if (it != scope->variables.end()) {
                     return &it->second;
+                }
+                scope = scope->parent;
+            }
+            return nullptr;
+        }
+
+        auto find_variable_from_value(llvm::Value* value) -> VariableInfo* {
+            Scope* scope = current_scope;
+            while (scope) {
+                auto* var_info = scope->find_variable_from_value(value);
+                if (var_info) {
+                    return var_info;
                 }
                 scope = scope->parent;
             }

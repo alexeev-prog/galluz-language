@@ -45,7 +45,7 @@ namespace galluz::generators {
 
         auto generate(const Exp& ast_node, core::CompilationContext& context) -> llvm::Value* override {
             if (ast_node.list.size() < 2) {
-                throw std::runtime_error("Arithmetic operation requires at least one operand");
+                LOG_CRITICAL("Arithmetic operation requires at least one operand");
             }
 
             const auto& op = ast_node.list[0].string;
@@ -56,7 +56,7 @@ namespace galluz::generators {
             }
 
             if (operands.empty()) {
-                return context.m_BUILDER.getInt64(0);
+                return context.m_BUILDER.getInt32(0);
             }
 
             if (operands.size() == 1) {
@@ -108,7 +108,7 @@ namespace galluz::generators {
                     } else if (op == "/") {
                         result = context.m_BUILDER.CreateFDiv(left_fp, right_fp);
                     } else if (op == "%") {
-                        throw std::runtime_error("Modulo operation not supported for floating point");
+                        LOG_CRITICAL("Modulo operation not supported for floating point");
                     }
                 }
             }

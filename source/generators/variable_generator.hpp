@@ -69,7 +69,11 @@ namespace galluz::generators {
             llvm::Value* init_value = m_GENERATOR_MANAGER->generate_code(value_exp, context);
 
             if (type_info) {
-                if (init_value->getType() != type_info->llvm_type) {
+                if (type_info->kind == core::TypeKind::STRUCT) {
+                    if (!init_value->getType()->isPointerTy()) {
+                        LOG_CRITICAL("Type mismatch for struct variable %s", var_name.c_str());
+                    }
+                } else if (init_value->getType() != type_info->llvm_type) {
                     if (type_info->kind == core::TypeKind::INT && init_value->getType()->isIntegerTy()) {
                         init_value = context.m_BUILDER.CreateIntCast(init_value, type_info->llvm_type, true);
                     } else if (type_info->kind == core::TypeKind::DOUBLE
@@ -84,6 +88,11 @@ namespace galluz::generators {
                                && init_value->getType()->isFloatingPointTy())
                     {
                         init_value = context.m_BUILDER.CreateFPToSI(init_value, type_info->llvm_type);
+                    } else if (type_info->kind == core::TypeKind::BOOL
+                               && init_value->getType()->isIntegerTy())
+                    {
+                        init_value =
+                            context.m_BUILDER.CreateIntCast(init_value, context.m_BUILDER.getInt1Ty(), false);
                     } else {
                         LOG_CRITICAL("Type mismatch for variable %s", var_name.c_str());
                     }
@@ -109,12 +118,17 @@ namespace galluz::generators {
 
                 return init_value;
             } else {
-                auto* alloca = context.m_BUILDER.CreateAlloca(value_type, nullptr, var_name);
-                context.m_BUILDER.CreateStore(init_value, alloca);
+                if (type_info && type_info->kind == core::TypeKind::STRUCT) {
+                    context.add_variable(var_name, init_value, value_type, type_info, false);
+                    return init_value;
+                } else {
+                    auto* alloca = context.m_BUILDER.CreateAlloca(value_type, nullptr, var_name);
+                    context.m_BUILDER.CreateStore(init_value, alloca);
 
-                context.add_variable(var_name, alloca, value_type, type_info, false);
+                    context.add_variable(var_name, alloca, value_type, type_info, false);
 
-                return init_value;
+                    return alloca;
+                }
             }
         }
 

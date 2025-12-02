@@ -5,6 +5,7 @@
 
 #include "../core/generator_manager.hpp"
 #include "../core/types.hpp"
+#include "../logger.hpp"
 
 namespace galluz::generators {
 
@@ -20,14 +21,14 @@ namespace galluz::generators {
         auto parse_typed_name(const Exp& name_exp, core::CompilationContext& context)
             -> std::pair<std::string, core::TypeInfo*> {
             if (name_exp.type != ExpType::LIST || name_exp.list.size() != 2) {
-                throw std::runtime_error("Invalid function name format");
+                LOG_CRITICAL("Invalid function name format");
             }
 
             const auto& func_name_exp = name_exp.list[0];
             const auto& return_type_exp = name_exp.list[1];
 
             if (func_name_exp.type != ExpType::SYMBOL) {
-                throw std::runtime_error("Function name must be a symbol");
+                LOG_CRITICAL("Function name must be a symbol");
             }
 
             std::string func_name = func_name_exp.string;
@@ -38,7 +39,7 @@ namespace galluz::generators {
             }
 
             if (!return_type) {
-                throw std::runtime_error("Invalid return type specification: " + return_type_exp.string);
+                LOG_CRITICAL("Invalid return type specification: %s", return_type_exp.string);
             }
 
             return {func_name, return_type};
@@ -49,7 +50,7 @@ namespace galluz::generators {
             std::vector<FunctionParam> params;
 
             if (params_list.type != ExpType::LIST) {
-                throw std::runtime_error("Function parameters must be a list");
+                LOG_CRITICAL("Function parameters must be a list");
             }
 
             for (const auto& param_item : params_list.list) {
@@ -58,7 +59,7 @@ namespace galluz::generators {
                     const auto& param_type_exp = param_item.list[1];
 
                     if (param_name_exp.type != ExpType::SYMBOL) {
-                        throw std::runtime_error("Parameter name must be a symbol");
+                        LOG_CRITICAL("Parameter name must be a symbol");
                     }
 
                     FunctionParam param;
@@ -67,16 +68,16 @@ namespace galluz::generators {
                     if (param_type_exp.type == ExpType::SYMBOL && param_type_exp.string[0] == '!') {
                         param.type = context.type_system->get_type(param_type_exp.string.substr(1));
                     } else {
-                        throw std::runtime_error("Parameter type must start with !");
+                        LOG_CRITICAL("Parameter type must start with !");
                     }
 
                     if (!param.type) {
-                        throw std::runtime_error("Unknown parameter type: " + param_type_exp.string);
+                        LOG_CRITICAL("Unknown parameter type: %s", param_type_exp.string);
                     }
 
                     params.push_back(param);
                 } else {
-                    throw std::runtime_error("Invalid parameter syntax");
+                    LOG_CRITICAL("Invalid parameter syntax");
                 }
             }
 
@@ -90,7 +91,11 @@ namespace galluz::generators {
                                 core::CompilationContext& context) -> llvm::Function* {
             std::vector<llvm::Type*> param_types;
             for (const auto& param : params) {
-                param_types.push_back(param.type->llvm_type);
+                if (param.type->kind == core::TypeKind::STRUCT) {
+                    param_types.push_back(param.type->llvm_type->getPointerTo());
+                } else {
+                    param_types.push_back(param.type->llvm_type);
+                }
             }
 
             llvm::FunctionType* func_type =
@@ -115,14 +120,16 @@ namespace galluz::generators {
                 const auto& param = params[idx];
                 arg.setName(param.name);
 
-                llvm::AllocaInst* alloca =
-                    context.m_BUILDER.CreateAlloca(param.type->llvm_type, nullptr, param.name);
-
-                context.m_BUILDER.CreateStore(&arg, alloca);
-
-                core::VariableInfo var_info = {alloca, param.type->llvm_type, param.type, false, param.name};
-                context.add_variable(param.name, alloca, param.type->llvm_type, param.type, false);
-                param_infos.push_back(var_info);
+                if (param.type->kind == core::TypeKind::STRUCT) {
+                    core::VariableInfo var_info = {&arg, arg.getType(), param.type, false, param.name};
+                    context.add_variable(param.name, &arg, arg.getType(), param.type, false);
+                    param_infos.push_back(var_info);
+                } else {
+                    core::VariableInfo var_info = {
+                        &arg, param.type->llvm_type, param.type, false, param.name};
+                    context.add_variable(param.name, &arg, param.type->llvm_type, param.type, false);
+                    param_infos.push_back(var_info);
+                }
 
                 idx++;
             }
@@ -197,7 +204,7 @@ namespace galluz::generators {
 
         auto generate(const Exp& ast_node, core::CompilationContext& context) -> llvm::Value* override {
             if (ast_node.list.size() < 4) {
-                throw std::runtime_error("Invalid function definition syntax");
+                LOG_CRITICAL("Invalid function definition syntax");
             }
 
             const auto& name_exp = ast_node.list[1];
@@ -211,7 +218,12 @@ namespace galluz::generators {
 
             std::vector<core::VariableInfo> param_infos;
             for (const auto& param : params) {
-                core::VariableInfo var_info = {nullptr, param.type->llvm_type, param.type, false, param.name};
+                llvm::Type* param_type = param.type->llvm_type;
+                if (param.type->kind == core::TypeKind::STRUCT) {
+                    param_type = param_type->getPointerTo();
+                }
+
+                core::VariableInfo var_info = {nullptr, param_type, param.type, false, param.name};
                 param_infos.push_back(var_info);
             }
 

@@ -27,7 +27,7 @@ namespace galluz::generators {
 
         auto generate(const Exp& ast_node, core::CompilationContext& context) -> llvm::Value* override {
             if (ast_node.list.size() != 3) {
-                throw std::runtime_error("Invalid set syntax: (set variable value)");
+                LOG_CRITICAL("Invalid set syntax: (set variable value)");
             }
 
             const auto& name_exp = ast_node.list[1];
@@ -39,11 +39,11 @@ namespace galluz::generators {
                 var_name = name_exp.string;
             } else if (name_exp.type == ExpType::LIST && name_exp.list.size() == 2) {
                 if (name_exp.list[0].type != ExpType::SYMBOL) {
-                    throw std::runtime_error("Variable name must be a symbol");
+                    LOG_CRITICAL("Variable name must be a symbol");
                 }
                 var_name = name_exp.list[0].string;
             } else {
-                throw std::runtime_error("Invalid variable name in set operation");
+                LOG_CRITICAL("Invalid variable name in set operation");
             }
 
             llvm::Value* new_value = m_GENERATOR_MANAGER->generate_code(value_exp, context);
@@ -52,7 +52,12 @@ namespace galluz::generators {
             auto* var_info = context.find_variable(var_name);
             if (var_info) {
                 if (var_info->type_info && var_info->type_info->llvm_type != value_type) {
-                    if (var_info->type_info->kind == core::TypeKind::INT && value_type->isIntegerTy()) {
+                    if (var_info->type_info->kind == core::TypeKind::STRUCT) {
+                        if (!value_type->isStructTy() && !value_type->isPointerTy()) {
+                            LOG_CRITICAL("Type mismatch in set operation for struct variable: %s", var_name);
+                        }
+                    } else if (var_info->type_info->kind == core::TypeKind::INT && value_type->isIntegerTy())
+                    {
                         new_value =
                             context.m_BUILDER.CreateIntCast(new_value, var_info->type_info->llvm_type, true);
                     } else if (var_info->type_info->kind == core::TypeKind::DOUBLE
@@ -67,8 +72,12 @@ namespace galluz::generators {
                                && value_type->isFloatingPointTy())
                     {
                         new_value = context.m_BUILDER.CreateFPToSI(new_value, var_info->type_info->llvm_type);
+                    } else if (var_info->type_info->kind == core::TypeKind::BOOL && value_type->isIntegerTy())
+                    {
+                        new_value =
+                            context.m_BUILDER.CreateIntCast(new_value, context.m_BUILDER.getInt1Ty(), false);
                     } else {
-                        throw std::runtime_error("Type mismatch in set operation for variable: " + var_name);
+                        LOG_CRITICAL("Type mismatch in set operation for variable: %s", var_name);
                     }
                     value_type = new_value->getType();
                 }
@@ -76,13 +85,13 @@ namespace galluz::generators {
                 if (var_info->is_global) {
                     auto* global_var = context.m_MODULE.getNamedGlobal(var_name);
                     if (global_var->getValueType() != value_type) {
-                        throw std::runtime_error("Type mismatch in set operation for variable: " + var_name);
+                        LOG_CRITICAL("Type mismatch in set operation for variable: %s", var_name);
                     }
                     context.m_BUILDER.CreateStore(new_value, global_var);
                     return new_value;
                 } else {
                     if (var_info->type != value_type) {
-                        throw std::runtime_error("Type mismatch in set operation for variable: " + var_name);
+                        LOG_CRITICAL("Type mismatch in set operation for variable: %s", var_name);
                     }
                     context.m_BUILDER.CreateStore(new_value, var_info->value);
                     return new_value;
@@ -92,13 +101,13 @@ namespace galluz::generators {
             auto* global_var = context.m_MODULE.getNamedGlobal(var_name);
             if (global_var) {
                 if (global_var->getValueType() != value_type) {
-                    throw std::runtime_error("Type mismatch in set operation for variable: " + var_name);
+                    LOG_CRITICAL("Type mismatch in set operation for variable: %s", var_name);
                 }
                 context.m_BUILDER.CreateStore(new_value, global_var);
                 return new_value;
             }
 
-            throw std::runtime_error("Cannot set undefined variable: " + var_name);
+            LOG_CRITICAL("Cannot set undefined variable: %s", var_name);
         }
 
         auto get_priority() const -> int override { return 700; }

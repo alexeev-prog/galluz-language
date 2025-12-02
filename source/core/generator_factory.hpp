@@ -8,11 +8,14 @@
 #include "../generators/function_call_generator.hpp"
 #include "../generators/function_generator.hpp"
 #include "../generators/list_generator.hpp"
+#include "../generators/new_generator.hpp"
 #include "../generators/number_generator.hpp"
 #include "../generators/print_generator.hpp"
+#include "../generators/property_generator.hpp"
 #include "../generators/scope_generator.hpp"
 #include "../generators/set_generator.hpp"
 #include "../generators/string_generator.hpp"
+#include "../generators/struct_generator.hpp"
 #include "../generators/symbol_generator.hpp"
 #include "../generators/variable_generator.hpp"
 #include "generator_manager.hpp"
@@ -37,6 +40,9 @@ namespace galluz::core {
             manager.register_generator(std::make_unique<generators::FunctionGenerator>(&manager));
             manager.register_generator(std::make_unique<generators::ControlFlowGenerator>(&manager));
             manager.register_generator(std::make_unique<generators::FunctionCallGenerator>(&manager));
+            manager.register_generator(std::make_unique<generators::StructGenerator>(&manager));
+            manager.register_generator(std::make_unique<generators::NewGenerator>(&manager));
+            manager.register_generator(std::make_unique<generators::PropertyGenerator>(&manager));
         }
     };
 

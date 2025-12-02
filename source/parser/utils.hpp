@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include "../core/types.hpp"
 #include "../logger.hpp"
 #include "GalluzGrammar.h"
 
@@ -44,6 +45,13 @@ auto safe_expr_to_string(const Exp& exp) -> std::string {
         default:
             return "<?>";
     }
+}
+
+auto llvm_type_to_string(llvm::Type* type) -> std::string {
+    std::string type_str;
+    llvm::raw_string_ostream rso(type_str);
+    type->print(rso);
+    return type_str;
 }
 
 /**

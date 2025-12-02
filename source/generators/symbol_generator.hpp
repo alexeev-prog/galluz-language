@@ -3,6 +3,8 @@
 #include <llvm/IR/Instructions.h>
 
 #include "../core/types.hpp"
+#include "../logger.hpp"
+#include "parser/utils.hpp"
 
 namespace galluz::generators {
 
@@ -28,15 +30,22 @@ namespace galluz::generators {
                 if (var_info->is_global) {
                     auto* global_var = context.m_MODULE.getNamedGlobal(symbol);
                     if (!global_var) {
-                        throw std::runtime_error("Global variable not found: " + symbol);
+                        LOG_CRITICAL("Global variable not found: %s", symbol);
                     }
-                    return context.m_BUILDER.CreateLoad(global_var->getValueType(), global_var, symbol);
+                    if (var_info->type_info && var_info->type_info->kind == core::TypeKind::STRUCT) {
+                        return global_var;
+                    }
+                    return context.m_BUILDER.CreateLoad(var_info->type, global_var, symbol);
                 } else {
-                    if (llvm::isa<llvm::AllocaInst>(var_info->value)) {
-                        return context.m_BUILDER.CreateLoad(var_info->type, var_info->value, symbol);
-                    } else {
+                    if (var_info->type_info && var_info->type_info->kind == core::TypeKind::STRUCT) {
                         return var_info->value;
                     }
+
+                    if (llvm::isa<llvm::Argument>(var_info->value)) {
+                        return var_info->value;
+                    }
+
+                    return context.m_BUILDER.CreateLoad(var_info->type, var_info->value, symbol);
                 }
             }
 
@@ -47,10 +56,14 @@ namespace galluz::generators {
 
             auto* global_var = context.m_MODULE.getNamedGlobal(symbol);
             if (global_var) {
-                return context.m_BUILDER.CreateLoad(global_var->getValueType(), global_var, symbol);
+                llvm::Type* value_type = global_var->getValueType();
+                if (value_type->isStructTy()) {
+                    return global_var;
+                }
+                return context.m_BUILDER.CreateLoad(value_type, global_var, symbol);
             }
 
-            throw std::runtime_error("Undefined symbol: " + symbol);
+            LOG_CRITICAL("Undefined symbol: %s", symbol);
         }
 
         auto get_priority() const -> int override { return 900; }

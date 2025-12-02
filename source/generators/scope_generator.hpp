@@ -28,7 +28,7 @@ namespace galluz::generators {
         auto generate(const Exp& ast_node, core::CompilationContext& context) -> llvm::Value* override {
             context.push_scope();
 
-            llvm::Value* last_result = context.m_BUILDER.getInt64(0);
+            llvm::Value* last_result = context.m_BUILDER.getInt32(0);
 
             for (size_t i = 1; i < ast_node.list.size(); ++i) {
                 last_result = m_GENERATOR_MANAGER->generate_code(ast_node.list[i], context);
