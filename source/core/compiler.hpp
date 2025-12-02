@@ -69,6 +69,34 @@ namespace galluz {
             auto* byte_ptr_ty = m_BUILDER->getInt8Ty()->getPointerTo();
             m_MODULE->getOrInsertFunction(
                 "printf", llvm::FunctionType::get(m_BUILDER->getInt32Ty(), byte_ptr_ty, true));
+            m_MODULE->getOrInsertFunction(
+                "scanf", llvm::FunctionType::get(m_BUILDER->getInt32Ty(), byte_ptr_ty, true));
+            m_MODULE->getOrInsertFunction(
+                "fgets",
+                llvm::FunctionType::get(
+                    byte_ptr_ty, {byte_ptr_ty, m_BUILDER->getInt64Ty(), byte_ptr_ty}, false));
+            m_MODULE->getOrInsertFunction(
+                "fprintf",
+                llvm::FunctionType::get(m_BUILDER->getInt32Ty(), {byte_ptr_ty, byte_ptr_ty}, true));
+            m_MODULE->getOrInsertFunction(
+                "fscanf", llvm::FunctionType::get(m_BUILDER->getInt32Ty(), {byte_ptr_ty, byte_ptr_ty}, true));
+            m_MODULE->getOrInsertFunction(
+                "sscanf", llvm::FunctionType::get(m_BUILDER->getInt32Ty(), {byte_ptr_ty, byte_ptr_ty}, true));
+            m_MODULE->getOrInsertFunction(
+                "atoi", llvm::FunctionType::get(m_BUILDER->getInt32Ty(), byte_ptr_ty, false));
+            m_MODULE->getOrInsertFunction(
+                "atof", llvm::FunctionType::get(m_BUILDER->getDoubleTy(), byte_ptr_ty, false));
+            m_MODULE->getOrInsertFunction(
+                "strtol",
+                llvm::FunctionType::get(
+                    m_BUILDER->getInt64Ty(), {byte_ptr_ty, byte_ptr_ty, m_BUILDER->getInt32Ty()}, false));
+            m_MODULE->getOrInsertFunction(
+                "strtod",
+                llvm::FunctionType::get(m_BUILDER->getDoubleTy(), {byte_ptr_ty, byte_ptr_ty}, false));
+            m_MODULE->getOrInsertFunction(
+                "malloc", llvm::FunctionType::get(byte_ptr_ty, m_BUILDER->getInt64Ty(), false));
+            m_MODULE->getOrInsertFunction(
+                "free", llvm::FunctionType::get(m_BUILDER->getVoidTy(), byte_ptr_ty, false));
         }
 
         void generate_ir(const Exp& ast) {

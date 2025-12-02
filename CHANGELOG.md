@@ -1,3 +1,9 @@
+commit 05ddf3c5181b35881d910b10ba890ec240a43542
+Author: Alexeev Bronislav <alexeev.dev@mail.ru>
+Date:   Tue Dec 2 23:45:15 2025 +0700
+
+    create struct, hasprop, getprop, setprop and new object of struct, fix bugs
+
 commit a46486ff9179ce7fb07b4a982179c85adeee5a32
 Author: Alexeev Bronislav <alexeev.dev@mail.ru>
 Date:   Tue Dec 2 14:34:06 2025 +0700
