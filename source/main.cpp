@@ -156,15 +156,15 @@ namespace {
 auto main(int argc, char** argv) -> int {
     const std::string VERSION = "0.8.0";
 
-    // Создаем компилятор вместо GalluzLLVM
-    galluz::Compiler compiler;
     std::string program;
     std::string output_base = "out";
     bool compile_raw_object_file = false;
+    std::unique_ptr<galluz::Compiler> compiler;
+    std::string current_directory;
 
     // Initialize parser with program info
     InputParser parser(fs::path(argv[0]).filename().string(),
-                       "MorningLLVM - Compiler for the Morning programming language");
+                       "GalluzLLVM - Compiler for the Galluz programming language");
 
     // Register command line options
     parser.add_option({"-v", "--version", "Get version", false, ""});
@@ -212,15 +212,17 @@ auto main(int argc, char** argv) -> int {
     }
 
     // Handle input source
+    std::string input_filename;
     if (auto filename = parser.get_argument("-f")) {
-        if (!fs::exists(*filename)) {
-            LOG_ERROR("File \"%s\" not found", filename->c_str());
+        input_filename = *filename;
+        if (!fs::exists(input_filename)) {
+            LOG_ERROR("File \"%s\" not found", input_filename.c_str());
             return 1;
         }
 
-        std::ifstream program_file(*filename);
+        std::ifstream program_file(input_filename);
         if (!program_file.is_open()) {
-            LOG_ERROR("Cannot open file \"%s\"", filename->c_str());
+            LOG_ERROR("Cannot open file \"%s\"", input_filename.c_str());
             return 1;
         }
 
@@ -229,9 +231,16 @@ auto main(int argc, char** argv) -> int {
         program = buffer.str();
 
         if (program.empty()) {
-            LOG_ERROR("File \"%s\" is empty", filename->c_str());
+            LOG_ERROR("File \"%s\" is empty", input_filename.c_str());
             return 1;
         }
+
+        fs::path file_path(input_filename);
+        current_directory = file_path.parent_path().string();
+        if (current_directory.empty()) {
+            current_directory = ".";
+        }
+
     } else if (auto expr = parser.get_argument("-e")) {
         program = *expr;
 
@@ -239,6 +248,9 @@ auto main(int argc, char** argv) -> int {
             LOG_ERROR("Empty expression");
             return 1;
         }
+
+        current_directory = fs::current_path().string();
+
     } else {
         LOG_ERROR("No input specified (use -e or -f)");
         std::cerr << parser.generate_help() << "\n";
@@ -253,7 +265,9 @@ auto main(int argc, char** argv) -> int {
     // Execute compilation pipeline
     try {
         LOG_INFO("Executing program...");
-        compiler.execute(program, output_base);
+
+        compiler = std::make_unique<galluz::Compiler>(current_directory);
+        compiler->execute(program, output_base);
         std::cout << "\n";
 
         const std::string LL_FILE = output_base + ".ll";

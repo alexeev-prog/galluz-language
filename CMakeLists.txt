@@ -38,6 +38,7 @@ add_library(
 )
 target_link_libraries(galluzlang_lib ${llvm_libs} lldELF)
 target_link_libraries(galluzlang_lib
+	readline
     LLVMPasses
     LLVMX86CodeGen
     LLVMX86Desc

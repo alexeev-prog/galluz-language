@@ -7,6 +7,7 @@
 
 #include "generator_factory.hpp"
 #include "generator_manager.hpp"
+#include "module_manager.hpp"
 #include "preprocessor.hpp"
 #include "types.hpp"
 
@@ -22,13 +23,15 @@ namespace galluz {
         std::unique_ptr<core::CompilationContext> m_COMPILATION_CONTEXT;
         core::Preprocessor m_PREPROCESSOR;
         std::unique_ptr<core::TypeSystem> m_TYPE_SYSTEM;
+        std::unique_ptr<core::ModuleManager> m_MODULE_MANAGER;
+        std::string m_CURRENT_DIRECTORY;
 
       public:
-        Compiler()
-            : m_PARSER(std::make_unique<syntax::GalluzGrammar>()) {
+        Compiler(const std::string& current_dir = "")
+            : m_PARSER(std::make_unique<syntax::GalluzGrammar>())
+            , m_CURRENT_DIRECTORY(current_dir) {
             initialize_llvm();
             setup_external_functions();
-            core::GeneratorFactory::register_default_generators(m_GENERATOR_MANAGER);
         }
 
         auto execute(const std::string& program, const std::string& output_base) -> int {
@@ -45,6 +48,13 @@ namespace galluz {
             return 0;
         }
 
+        auto set_current_directory(const std::string& dir) -> void {
+            m_CURRENT_DIRECTORY = dir;
+            if (m_MODULE_MANAGER) {
+                m_MODULE_MANAGER->set_current_directory(dir);
+            }
+        }
+
       private:
         void initialize_llvm() {
             m_CTX = std::make_unique<llvm::LLVMContext>();
@@ -52,6 +62,11 @@ namespace galluz {
             m_BUILDER = std::make_unique<llvm::IRBuilder<>>(*m_CTX);
 
             m_TYPE_SYSTEM = std::make_unique<core::TypeSystem>(*m_CTX);
+            m_MODULE_MANAGER = std::make_unique<core::ModuleManager>(m_TYPE_SYSTEM.get());
+
+            if (!m_CURRENT_DIRECTORY.empty()) {
+                m_MODULE_MANAGER->set_current_directory(m_CURRENT_DIRECTORY);
+            }
 
             m_TYPE_SYSTEM->register_type("int", core::TypeKind::INT, m_BUILDER->getInt32Ty());
             m_TYPE_SYSTEM->register_type("double", core::TypeKind::DOUBLE, m_BUILDER->getDoubleTy());
@@ -63,6 +78,8 @@ namespace galluz {
 
             m_COMPILATION_CONTEXT = std::make_unique<core::CompilationContext>(
                 *m_CTX, *m_MODULE, *m_BUILDER, nullptr, m_TYPE_SYSTEM.get());
+
+            core::GeneratorFactory::register_default_generators(m_GENERATOR_MANAGER, m_MODULE_MANAGER.get());
         }
 
         void setup_external_functions() {

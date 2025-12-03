@@ -41,6 +41,205 @@
 
 Simple programming language based on S-expressions and written in LLVM &amp; C++
 
+## Examples
+
+### Simple
+
+```galluz
+(var (age !int) 25)
+(var (price !double) 99.99)
+(var (name !str) "Alice")
+(var (active !bool) true)
+
+(fprint "Name: %s, Age: %d\n" name age)
+(fprint "Price: %f, Active: %d\n" price active)
+
+(var (VERSION !double) 1.12)
+(fprint "Program Version: %f\n\n" VERSION)
+```
+
+### Arithmetic
+
+```galluz
+(var (a !int) 10)
+(var (b !int) 3)
+
+(fprint "a + b = %d\n" (+ a b))
+(fprint "a - b = %d\n" (- a b))
+(fprint "a * b = %d\n" (* a b))
+(fprint "a / b = %d\n" (/ a b))
+(fprint "a %% b = %d\n" (% a b))
+
+(var (c !double) 7.5)
+(fprint "c + 2.5 = %f\n" (+ c 2.5))
+(fprint "c * 2.0 = %f\n" (* c 2.0))
+
+(defn (add !int) ((x !int) (y !int))
+    (+ x y))
+
+(defn (multiply !int) ((a !double) (b !double))
+    (* a b))
+
+(var (result1 !int) (add 5 10))
+(var (result2 !double) (multiply 3.5 2.0))
+
+(fprint "add(5, 10) = %d\n" result1)
+(fprint "multiply(3.5, 2.0) = %f\n" result2)
+```
+
+### Comparison
+
+```galluz
+(var (A !int) 10)
+(var (B !int) 20)
+(fprint "A > B: %d\n" (> A B))
+(fprint "A < B: %d\n" (< A B))
+(fprint "A == 10: %d\n" (== A 10))
+(fprint "A != B: %d\n" (!= A B))
+
+(var (X !double) 5.5)
+(var (Y !double) 2.2)
+(fprint "X > Y: %d\n" (> X Y))
+(fprint "X < Y: %d\n" (< X Y))
+(fprint "X == 5.5: %d\n" (== X 5.5))
+```
+
+### Global and local vars
+
+```galluz
+(global (ALPHA !int) 42)
+(scope
+    (var (BETA !str) "Hello")
+    (fprint "BETA: %s\n" BETA)
+)
+(fprint "ALPHA: %d\n" ALPHA)
+```
+
+### If-else
+
+```galluz
+(var (age !int) 18)
+
+(if (>= age 18)
+    (fprint "Adult\n")
+    (fprint "Minor\n"))
+```
+
+### While loop
+
+```galluz
+(var (counter !int) 0)
+
+(while (< counter 5)
+    (scope
+        (fprint "Counter: %d\n" counter)
+        (set counter (+ counter 1))
+    )
+)
+```
+
+### Vars change
+
+```galluz
+(var (X !int) 10)
+(fprint "X before: %d\n" X)
+(set (X !int) 20)
+(fprint "X after: %d\n" X)
+```
+
+### Factorial
+
+```galluz
+(defn (iter_factorial !int) ((n !int))
+    (if (< n 0)
+        (do
+            (fprint "Error: Negative number\n")
+            -1)
+        (do
+            (var (result !int) 1)
+            (var (i !int) 1)
+            (while (<= i n)
+                (do
+                    (set result (* result i))
+                    (set i (+ i 1))))
+            result)))
+
+(defn (factorial !int) ((x !int))
+    (if (< x 0)
+        -1
+        (if (== x 0)
+            1
+            (* x (factorial (- x 1)))
+        )
+    )
+)
+
+(fprint "iter_factorial(5) = %d\n" (factorial 5))
+(fprint "iter_factorial(-3) = %d\n" (factorial -3))
+(fprint "iter_factorial(0) = %d\n" (factorial 0))
+(fprint "iter_factorial(1) = %d\n" (factorial 1))
+
+(fprint "factorial(5) = %d\n" (factorial 5))
+(fprint "factorial(-3) = %d\n" (factorial -3))
+(fprint "factorial(0) = %d\n" (factorial 0))
+(fprint "factorial(1) = %d\n" (factorial 1))
+```
+
+### Structs
+
+```galluz
+(struct User ((name !str) (age !int)))
+
+(defn (is_adult_user !void) ((user !User))
+    (if (>= (getprop user age) 18)
+        (fprint "Adult\n")
+        (fprint "Minor\n")
+    )
+)
+
+(defn (set_age !void) ((user !User) (new_age !int))
+    (setprop user age new_age)
+)
+
+(var (user !User) (new User (name "John") (age 18)))
+(is_adult_user user)
+(set_age user 17)
+(is_adult_user user)
+(fprint "%d\n" (hasprop user age))
+```
+
+### finput
+
+```galluz
+(var (name !str) (finput "Enter your name: "))
+(fprint "Hello, %s!\n" name)
+
+(var (age !int))
+(var (height !double))
+(finput "Enter age and height (example: 25 1.75): " age height)
+(fprint "Age: %d, Height: %f\n" age height)
+
+(var (new_age !int) (finput "How old are you? " !int))
+(var (new_height !double) (finput "What is your height? " !double))
+(fprint "You are %d years old and your height is %f meters\n" new_age new_height)
+
+(var (a !int))
+(var (b !double))
+(var (c !int))
+(finput "Enter int, double, int: " a b c)
+(fprint "a=%d, b=%f, c=%d\n" a b c)
+
+(var (city !str) (finput "Enter your city: " !str))
+(fprint "You live in %s\n" city)
+
+(var (is_student !bool))
+(finput "Are you a student? (1=yes, 0=no): " is_student)
+(if is_student
+    (fprint "You are a student\n")
+    (fprint "You are not a student\n")
+)
+```
+
 ## Galluz Manifesto
 *"We reject the false choice between performance and expressiveness.
 We reject the old methods imposed by backward compatibility with

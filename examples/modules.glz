@@ -1,0 +1,6 @@
+(import "core/basicmath.glz" (module AddMath) (module MultiplyMath))
+
+(moduleuse AddMath)
+
+(fprint "%d\n" (add 5 10))
+(fprint "%d\n" (MultiplyMath.multiply 5 10))

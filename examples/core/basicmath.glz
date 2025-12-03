@@ -1,0 +1,9 @@
+(defmodule AddMath
+    (defn (add !int) ((x !int) (y !int))
+        (+ x y))
+)
+
+(defmodule MultiplyMath
+    (defn (multiply !int) ((a !int) (b !int))
+        (* a b))
+)

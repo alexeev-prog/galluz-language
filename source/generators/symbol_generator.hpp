@@ -1,15 +1,31 @@
+// generators/symbol_generator.hpp
 #pragma once
 
 #include <llvm/IR/Instructions.h>
 
+#include "../core/generator_manager.hpp"
+#include "../core/module_manager.hpp"
 #include "../core/types.hpp"
 #include "../logger.hpp"
-#include "parser/utils.hpp"
+#include "../parser/utils.hpp"
 
 namespace galluz::generators {
 
     class SymbolGenerator : public core::ICodeGenerator {
+      private:
+        core::GeneratorManager* m_GENERATOR_MANAGER;
+        core::ModuleManager* m_MODULE_MANAGER;
+
       public:
+        SymbolGenerator()
+            : m_GENERATOR_MANAGER(nullptr)
+            , m_MODULE_MANAGER(nullptr) {}
+
+        void initialize(core::GeneratorManager* manager, core::ModuleManager* module_manager) {
+            m_GENERATOR_MANAGER = manager;
+            m_MODULE_MANAGER = module_manager;
+        }
+
         auto can_handle(const Exp& ast_node) const -> bool override {
             return ast_node.type == ExpType::SYMBOL;
         }
@@ -23,6 +39,22 @@ namespace galluz::generators {
 
             if (symbol == "false") {
                 return context.m_BUILDER.getInt1(false);
+            }
+
+            std::unordered_set<std::string> keywords = {
+                "import", "moduleuse", "defmodule", "defn",    "var",     "global", "set",
+                "scope",  "do",        "fprint",    "if",      "while",   "break",  "continue",
+                "struct", "new",       "getprop",   "setprop", "hasprop", "finput"};
+
+            if (keywords.count(symbol)) {
+                LOG_CRITICAL("Undefined symbol: %s (this is a keyword)", symbol);
+            }
+
+            if (symbol.find('.') != std::string::npos && m_MODULE_MANAGER) {
+                auto [module_value, member_name] = m_MODULE_MANAGER->resolve_symbol(symbol);
+                if (module_value) {
+                    return module_value;
+                }
             }
 
             auto* var_info = context.find_variable(symbol);
@@ -66,7 +98,7 @@ namespace galluz::generators {
             LOG_CRITICAL("Undefined symbol: %s", symbol);
         }
 
-        auto get_priority() const -> int override { return 900; }
+        auto get_priority() const -> int override { return 800; }
     };
 
 }    // namespace galluz::generators

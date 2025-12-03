@@ -70,13 +70,10 @@ struct Exp {
     std::string string;
     std::vector<Exp> list;
 
-    // Numbers
     Exp(int number) : type(ExpType::NUMBER), number(number) {}
 
-    // Fractional (double)
     Exp(double fractional) : type(ExpType::FRACTIONAL), fractional(fractional) {}
 
-    // Strings&symbols
     Exp(std::string& str_value) {
         if (str_value[0] == '"') {
             type = ExpType::STRING;
@@ -87,7 +84,6 @@ struct Exp {
         }
     }
 
-    // Lists:
     Exp(std::vector<Exp> list) : type(ExpType::LIST), list(list) {}
 };
 
@@ -354,7 +350,7 @@ enum class TokenType {
          * Lexical rules.
          */
         // clang-format off
-  static constexpr size_t LEX_RULES_COUNT = 11;
+  static constexpr size_t LEX_RULES_COUNT = 12;
   static std::array<LexRule, LEX_RULES_COUNT> lexRules_;
   static std::map<TokenizerState, std::vector<size_t>> lexRulesByStartConditions_;
         // clang-format on
@@ -447,6 +443,10 @@ inline TokenType _lexRule11(const Tokenizer& tokenizer, const std::string& yytex
 return TokenType::SYMBOL;
 }
 
+inline TokenType _lexRule12(const Tokenizer& tokenizer, const std::string& yytext) {
+return TokenType::__EMPTY;
+}
+
     // clang-format on
 
     // ------------------------------------------------------------------
@@ -464,9 +464,10 @@ std::array<LexRule, Tokenizer::LEX_RULES_COUNT> Tokenizer::lexRules_ = {{
   {std::regex(R"(^[-+]?\d+[eE][-+]?\d+)"), &_lexRule8},
   {std::regex(R"(^[-+]?\d+)"), &_lexRule9},
   {std::regex(R"(^"[^\"]*")"), &_lexRule10},
-  {std::regex(R"(^[\w\-+*=!<>/:%]+)"), &_lexRule11}
+  {std::regex(R"(^[\w\-+*=!<>/:%]+)"), &_lexRule11},
+  {std::regex(R"(^\.)"), &_lexRule12}
 }};
-std::map<TokenizerState, std::vector<size_t>> Tokenizer::lexRulesByStartConditions_ =  {{TokenizerState::INITIAL, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}}};
+std::map<TokenizerState, std::vector<size_t>> Tokenizer::lexRulesByStartConditions_ =  {{TokenizerState::INITIAL, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}}};
     // clang-format on
 
 #endif

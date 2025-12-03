@@ -1,12 +1,3 @@
-/**
- * Morning.lang grammar
- *
- * syntax-cli -g source/parser/MorningLangGrammar.bnf -m LALR1 -o source/parser/MorningLangGrammar.h
- *
- */
-
-// Lexical grammar (tokens)
-
 %lex
 
 %%
@@ -22,10 +13,9 @@
 [-+]?\d+                          NUMBER
 \"[^\"]*\"                        STRING
 [\w\-+*=!<>/:%]+                  SYMBOL
+\.                                %empty
 
 /lex
-
-// Syntastic grammar (BNF)
 
 %{
 #include <string>
@@ -47,13 +37,10 @@ struct Exp {
     std::string string;
     std::vector<Exp> list;
 
-    // Numbers
     Exp(int number) : type(ExpType::NUMBER), number(number) {}
 
-    // Fractional (double)
     Exp(double fractional) : type(ExpType::FRACTIONAL), fractional(fractional) {}
 
-    // Strings&symbols
     Exp(std::string& str_value) {
         if (str_value[0] == '"') {
             type = ExpType::STRING;
@@ -64,7 +51,6 @@ struct Exp {
         }
     }
 
-    // Lists:
     Exp(std::vector<Exp> list) : type(ExpType::LIST), list(list) {}
 };
 

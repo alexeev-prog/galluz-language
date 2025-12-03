@@ -8,7 +8,10 @@
 #include "../generators/fractional_generator.hpp"
 #include "../generators/function_call_generator.hpp"
 #include "../generators/function_generator.hpp"
+#include "../generators/import_generator.hpp"
 #include "../generators/list_generator.hpp"
+#include "../generators/module_generator.hpp"
+#include "../generators/moduleuse_generator.hpp"
 #include "../generators/new_generator.hpp"
 #include "../generators/number_generator.hpp"
 #include "../generators/print_generator.hpp"
@@ -20,16 +23,22 @@
 #include "../generators/symbol_generator.hpp"
 #include "../generators/variable_generator.hpp"
 #include "generator_manager.hpp"
+#include "module_manager.hpp"
 
 namespace galluz::core {
 
     class GeneratorFactory {
       public:
-        static auto register_default_generators(GeneratorManager& manager) -> void {
+        static auto register_default_generators(GeneratorManager& manager, ModuleManager* module_manager)
+            -> void {
             manager.register_generator(std::make_unique<generators::NumberGenerator>());
             manager.register_generator(std::make_unique<generators::FractionalGenerator>());
             manager.register_generator(std::make_unique<generators::StringGenerator>());
-            manager.register_generator(std::make_unique<generators::SymbolGenerator>());
+
+            auto symbol_gen = std::make_unique<generators::SymbolGenerator>();
+            symbol_gen->initialize(&manager, module_manager);
+            manager.register_generator(std::move(symbol_gen));
+
             manager.register_generator(std::make_unique<generators::VariableGenerator>(&manager));
             manager.register_generator(std::make_unique<generators::SetGenerator>(&manager));
             manager.register_generator(std::make_unique<generators::ScopeGenerator>(&manager));
@@ -41,10 +50,17 @@ namespace galluz::core {
             manager.register_generator(std::make_unique<generators::ListGenerator>(&manager));
             manager.register_generator(std::make_unique<generators::FunctionGenerator>(&manager));
             manager.register_generator(std::make_unique<generators::ControlFlowGenerator>(&manager));
-            manager.register_generator(std::make_unique<generators::FunctionCallGenerator>(&manager));
+            manager.register_generator(
+                std::make_unique<generators::FunctionCallGenerator>(&manager, module_manager));
             manager.register_generator(std::make_unique<generators::StructGenerator>(&manager));
             manager.register_generator(std::make_unique<generators::NewGenerator>(&manager));
             manager.register_generator(std::make_unique<generators::PropertyGenerator>(&manager));
+            manager.register_generator(
+                std::make_unique<generators::ModuleGenerator>(&manager, module_manager));
+            manager.register_generator(
+                std::make_unique<generators::ImportGenerator>(&manager, module_manager));
+            manager.register_generator(
+                std::make_unique<generators::ModuleUseGenerator>(&manager, module_manager));
         }
     };
 

@@ -15,6 +15,7 @@ let
     ncurses
     lld
     gcc
+    readline
     lld
     bolt
     pkg-config

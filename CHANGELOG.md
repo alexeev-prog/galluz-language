@@ -1,3 +1,9 @@
+commit 729951cd962d5903c060df6bf105c84f5d4cb6ab
+Author: Alexeev Bronislav <alexeev.dev@mail.ru>
+Date:   Wed Dec 3 14:43:11 2025 +0700
+
+    fix bugs with finput, update finput and variables
+
 commit 6dcdf72bf31a8c38c39abff8c00a849ace0893ec
 Author: Alexeev Bronislav <alexeev.dev@mail.ru>
 Date:   Wed Dec 3 00:11:45 2025 +0700
