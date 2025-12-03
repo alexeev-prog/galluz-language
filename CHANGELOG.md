@@ -1,3 +1,9 @@
+commit 6dcdf72bf31a8c38c39abff8c00a849ace0893ec
+Author: Alexeev Bronislav <alexeev.dev@mail.ru>
+Date:   Wed Dec 3 00:11:45 2025 +0700
+
+    update readme and add finput
+
 commit 05ddf3c5181b35881d910b10ba890ec240a43542
 Author: Alexeev Bronislav <alexeev.dev@mail.ru>
 Date:   Tue Dec 2 23:45:15 2025 +0700

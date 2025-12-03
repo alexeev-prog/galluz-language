@@ -47,6 +47,8 @@ namespace galluz::core {
                         result += '"';
                     } else if (c == '\\') {
                         result += '\\';
+                    } else if (c == '/') {
+                        result += '/';
                     } else {
                         result += c;
                     }
@@ -61,13 +63,61 @@ namespace galluz::core {
             return result;
         }
 
+        auto remove_comments(const std::string& line) -> std::string {
+            std::string result;
+            bool in_string = false;
+            bool escaped = false;
+            bool in_line_comment = false;
+            bool in_block_comment = false;
+
+            for (size_t i = 0; i < line.size(); ++i) {
+                char c = line[i];
+                char next_c = (i + 1 < line.size()) ? line[i + 1] : '\0';
+
+                if (in_block_comment) {
+                    if (c == '*' && next_c == '/') {
+                        in_block_comment = false;
+                        i++;
+                    }
+                    continue;
+                }
+
+                if (in_line_comment) {
+                    continue;
+                }
+
+                if (escaped) {
+                    result += c;
+                    escaped = false;
+                } else if (c == '\\') {
+                    escaped = true;
+                    result += c;
+                } else if (c == '"') {
+                    in_string = !in_string;
+                    result += c;
+                } else if (!in_string && c == '/' && next_c == '/') {
+                    in_line_comment = true;
+                    i++;
+                } else if (!in_string && c == '/' && next_c == '*') {
+                    in_block_comment = true;
+                    i++;
+                } else {
+                    result += c;
+                }
+            }
+
+            return result;
+        }
+
         auto process_line(const std::string& line) -> std::string {
+            std::string no_comments = remove_comments(line);
+
             bool in_string = false;
             bool escaped = false;
             std::string result;
 
-            for (size_t i = 0; i < line.size(); ++i) {
-                char c = line[i];
+            for (size_t i = 0; i < no_comments.size(); ++i) {
+                char c = no_comments[i];
 
                 if (escaped) {
                     result += c;
@@ -97,17 +147,18 @@ namespace galluz::core {
             while (std::getline(ss, line)) {
                 line_num++;
 
+                std::string processed_line = process_line(line);
                 std::string trimmed;
                 bool in_string = false;
                 bool escaped = false;
 
                 size_t start = 0;
-                while (start < line.size() && std::isspace(line[start]) && !in_string) {
+                while (start < processed_line.size() && std::isspace(processed_line[start]) && !in_string) {
                     start++;
                 }
 
-                for (size_t i = start; i < line.size(); ++i) {
-                    char c = line[i];
+                for (size_t i = start; i < processed_line.size(); ++i) {
+                    char c = processed_line[i];
 
                     if (escaped) {
                         escaped = false;
@@ -136,9 +187,7 @@ namespace galluz::core {
             std::vector<std::string> expressions;
             std::string current_expr;
 
-            for (size_t i = 0; i < processed_code.size(); ++i) {
-                char c = processed_code[i];
-
+            for (char c : processed_code) {
                 if (c == '(') {
                     depth++;
                     current_expr += c;

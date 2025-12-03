@@ -1,2 +1,27 @@
-(var (name !str) (finput "Name: "))
-(fprint "%s\n" name)
+(var (name !str) (finput "Enter your name: "))
+(fprint "Hello, %s!\n" name)
+
+(var (age !int))
+(var (height !double))
+(finput "Enter age and height (example: 25 1.75): " age height)
+(fprint "Age: %d, Height: %f\n" age height)
+
+(var (new_age !int) (finput "How old are you? " !int))
+(var (new_height !double) (finput "What is your height? " !double))
+(fprint "You are %d years old and your height is %f meters\n" new_age new_height)
+
+(var (a !int))
+(var (b !double))
+(var (c !int))
+(finput "Enter int, double, int: " a b c)
+(fprint "a=%d, b=%f, c=%d\n" a b c)
+
+(var (city !str) (finput "Enter your city: " !str))
+(fprint "You live in %s\n" city)
+
+(var (is_student !bool))
+(finput "Are you a student? (1=yes, 0=no): " is_student)
+(if is_student
+    (fprint "You are a student\n")
+    (fprint "You are not a student\n")
+)

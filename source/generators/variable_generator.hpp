@@ -29,17 +29,18 @@ namespace galluz::generators {
         }
 
         auto generate(const Exp& ast_node, core::CompilationContext& context) -> llvm::Value* override {
-            if (ast_node.list.size() < 3) {
-                LOG_CRITICAL("Invalid variable delcaration");
+            if (ast_node.list.size() < 2) {
+                LOG_CRITICAL("Invalid variable declaration");
             }
 
             const auto& first = ast_node.list[0];
             const auto& name_exp = ast_node.list[1];
-            const auto& value_exp = ast_node.list[2];
 
             std::string var_name;
             core::TypeInfo* type_info = nullptr;
             bool is_global = (first.string == "global");
+
+            bool has_initializer = (ast_node.list.size() >= 3);
 
             if (name_exp.type == ExpType::LIST) {
                 if (name_exp.list.size() != 2) {
@@ -62,11 +63,78 @@ namespace galluz::generators {
                 }
             } else if (name_exp.type == ExpType::SYMBOL) {
                 var_name = name_exp.string;
+                if (has_initializer) {
+                    llvm::Value* init_value = m_GENERATOR_MANAGER->generate_code(ast_node.list[2], context);
+                    llvm::Type* value_type = init_value->getType();
+
+                    if (is_global) {
+                        llvm::Constant* const_init = llvm::dyn_cast<llvm::Constant>(init_value);
+                        if (!const_init) {
+                            LOG_CRITICAL("Global variable initializer must be constant");
+                        }
+
+                        context.m_MODULE.getOrInsertGlobal(var_name, value_type);
+                        auto* variable = context.m_MODULE.getNamedGlobal(var_name);
+
+                        variable->setAlignment(llvm::MaybeAlign(8));
+                        variable->setConstant(false);
+                        variable->setInitializer(const_init);
+
+                        context.add_variable(var_name, variable, value_type, nullptr, true);
+                        return init_value;
+                    } else {
+                        auto* alloca = context.m_BUILDER.CreateAlloca(value_type, nullptr, var_name);
+                        context.m_BUILDER.CreateStore(init_value, alloca);
+
+                        context.add_variable(var_name, alloca, value_type, nullptr, false);
+                        return alloca;
+                    }
+                } else {
+                    if (is_global) {
+                        LOG_CRITICAL("Global variables must have an initializer");
+                    }
+                    auto* alloca =
+                        context.m_BUILDER.CreateAlloca(context.m_BUILDER.getInt32Ty(), nullptr, var_name);
+                    auto* zero = context.m_BUILDER.getInt32(0);
+                    context.m_BUILDER.CreateStore(zero, alloca);
+
+                    context.add_variable(var_name, alloca, context.m_BUILDER.getInt32Ty(), nullptr, false);
+                    return alloca;
+                }
             } else {
                 LOG_CRITICAL("Variable name must be a symbol or typed specification");
             }
 
-            llvm::Value* init_value = m_GENERATOR_MANAGER->generate_code(value_exp, context);
+            if (!has_initializer) {
+                if (is_global) {
+                    LOG_CRITICAL("Global variables must have an initializer");
+                }
+
+                llvm::Type* value_type = type_info->llvm_type;
+                auto* alloca = context.m_BUILDER.CreateAlloca(value_type, nullptr, var_name);
+
+                llvm::Value* zero_init = nullptr;
+                if (type_info->kind == core::TypeKind::INT) {
+                    zero_init = context.m_BUILDER.getInt32(0);
+                } else if (type_info->kind == core::TypeKind::DOUBLE) {
+                    zero_init = llvm::ConstantFP::get(context.m_BUILDER.getDoubleTy(), 0.0);
+                } else if (type_info->kind == core::TypeKind::BOOL) {
+                    zero_init = context.m_BUILDER.getInt1(false);
+                } else if (type_info->kind == core::TypeKind::STRING) {
+                    zero_init = llvm::ConstantPointerNull::get(context.m_BUILDER.getInt8Ty()->getPointerTo());
+                } else if (type_info->kind == core::TypeKind::STRUCT) {
+                    zero_init = llvm::ConstantAggregateZero::get(value_type);
+                }
+
+                if (zero_init) {
+                    context.m_BUILDER.CreateStore(zero_init, alloca);
+                }
+
+                context.add_variable(var_name, alloca, value_type, type_info, false);
+                return alloca;
+            }
+
+            llvm::Value* init_value = m_GENERATOR_MANAGER->generate_code(ast_node.list[2], context);
 
             if (type_info) {
                 if (type_info->kind == core::TypeKind::STRUCT) {
