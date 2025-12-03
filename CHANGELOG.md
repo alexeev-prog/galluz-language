@@ -1,3 +1,9 @@
+commit 37cf92021d22728997b1bd728cee8a068e6d5f96
+Author: Alexeev Bronislav <alexeev.dev@mail.ru>
+Date:   Wed Dec 3 18:21:36 2025 +0700
+
+    create module structure (defmodule, moduleuse, import, module)
+
 commit 729951cd962d5903c060df6bf105c84f5d4cb6ab
 Author: Alexeev Bronislav <alexeev.dev@mail.ru>
 Date:   Wed Dec 3 14:43:11 2025 +0700

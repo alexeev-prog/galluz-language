@@ -240,6 +240,31 @@ Simple programming language based on S-expressions and written in LLVM &amp; C++
 )
 ```
 
+### Modules
+
+```galluz
+(import "core/basicmath.glz" (module AddMath) (module MultiplyMath))
+
+(moduleuse AddMath)
+
+(fprint "%d\n" (add 5 10))
+(fprint "%d\n" (MultiplyMath.multiply 5 10))
+```
+
+File `core/basicmath.glz`:
+
+```glz
+(defmodule AddMath
+    (defn (add !int) ((x !int) (y !int))
+        (+ x y))
+)
+
+(defmodule MultiplyMath
+    (defn (multiply !int) ((a !int) (b !int))
+        (* a b))
+)
+```
+
 ## Galluz Manifesto
 *"We reject the false choice between performance and expressiveness.
 We reject the old methods imposed by backward compatibility with
